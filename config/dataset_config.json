@@ -1,0 +1,44 @@
+{
+  "random_seed": 42,
+  "default_profile": "medium",
+  "profiles": {
+    "small": {
+      "customers": 1000,
+      "accounts": 1000,
+      "transactions": 10000,
+      "login_events": 3000,
+      "payment_requests": 5000,
+      "risk_requests": 1000,
+      "notifications": 5000,
+      "audit_logs": 6000
+    },
+    "medium": {
+      "customers": 10000,
+      "accounts": 10000,
+      "transactions": 50000,
+      "login_events": 15000,
+      "payment_requests": 25000,
+      "risk_requests": 5000,
+      "notifications": 25000,
+      "audit_logs": 30000
+    },
+    "large": {
+      "customers": 50000,
+      "accounts": 50000,
+      "transactions": 200000,
+      "login_events": 60000,
+      "payment_requests": 100000,
+      "risk_requests": 20000,
+      "notifications": 100000,
+      "audit_logs": 120000
+    }
+  },
+  "workload_event_limits": {
+    "W1": 5000,
+    "W2": 10000,
+    "W3": 15000,
+    "W4": 12000,
+    "W5": 8000,
+    "W6": 10000
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "project_metadata": {
+    "title": "Digital Banking System — Secure Hybrid Cloud Migration Simulation",
+    "version": "1.0.0",
+    "environment": "Academic Simulation / Prototype",
+    "author": "Final-Year Computer Engineering CIPAT Project"
+  },
+  "simulation": {
+    "random_seed": 42,
+    "time_unit": "seconds",
+    "metrics_sampling_interval_sec": 1.0
+  },
+  "on_premise": {
+    "cluster_name": "Legacy-OnPrem-DC1",
+    "server_count": 8,
+    "cores_per_server": 8,
+    "capacity_rps_per_core": 25.0,
+    "base_processing_latency_ms": 15.0,
+    "network_latency_ms": 5.0,
+    "autoscaling_supported": false,
+    "max_queue_depth": 5000,
+    "resource_cost_per_hour_usd": 45.0,
+    "database": {
+      "db_name": "Core-RDBMS-Cluster",
+      "connection_pool_capacity": 64,
+      "base_query_latency_ms": 12.0,
+      "db_required_services": [
+        "account_balance_inquiry",
+        "fund_transfer",
+        "kyc_verification",
+        "loan_application",
+        "credit_risk_evaluation",
+        "transaction_history"
+      ]
+    }
+  },
+  "hybrid_cloud": {
+    "private_tier": {
+      "cluster_name": "PrivateCloud-SecureZone",
+      "server_count": 6,
+      "cores_per_server": 8,
+      "capacity_rps_per_core": 30.0,
+      "base_processing_latency_ms": 10.0,
+      "network_latency_ms": 3.0,
+      "autoscaling_supported": false,
+      "max_queue_depth": 6000,
+      "allowed_data_classifications": ["RESTRICTED", "CONFIDENTIAL"],
+      "resource_cost_per_hour_usd": 38.0,
+      "database": {
+        "db_name": "Private-Core-RDBMS",
+        "connection_pool_capacity": 64,
+        "base_query_latency_ms": 10.0,
+        "db_required_services": [
+          "account_balance_inquiry",
+          "fund_transfer",
+          "kyc_verification",
+          "loan_application",
+          "credit_risk_evaluation",
+          "transaction_history"
+        ]
+      }
+    },
+    "public_tier": {
+      "cluster_name": "PublicCloud-ElasticZone",
+      "initial_instances": 2,
+      "min_instances": 2,
+      "max_instances": 20,
+      "cores_per_instance": 4,
+      "capacity_rps_per_core": 35.0,
+      "base_processing_latency_ms": 12.0,
+      "network_latency_ms": 18.0,
+      "autoscaling_supported": true,
+      "scale_up_threshold_cpu": 0.75,
+      "scale_down_threshold_cpu": 0.30,
+      "cooldown_period_sec": 30,
+      "instance_provisioning_delay_sec": 12,
+      "max_queue_depth_per_instance": 1000,
+      "allowed_data_classifications": ["PUBLIC", "INTERNAL"],
+      "cost_per_instance_hour_usd": 0.48
+    },
+    "autoscaling": {
+      "enabled": false,
+      "min_instances": 2,
+      "max_instances": 20,
+      "cores_per_instance": 4,
+      "scale_out_threshold": 0.70,
+      "scale_in_threshold": 0.35,
+      "monitoring_interval_seconds": 0.5,
+      "scale_out_consecutive_intervals": 2,
+      "scale_in_consecutive_intervals": 2,
+      "cooldown_seconds": 1.5,
+      "provisioning_delay_seconds": 0.8,
+      "scale_out_step": 4,
+      "scale_in_step": 2,
+      "load_balancing_strategy": "round_robin"
+    },
+    "gateway": {
+      "name": "Security-WAF-Gateway",
+      "latency_ms": 1.5
+    },
+    "interconnect": {
+      "type": "DirectConnect / IPsec VPN",
+      "latency_ms": 8.0,
+      "bandwidth_mbps": 10000,
+      "encryption_overhead_ms": 1.2
+    },
+    "routing": {
+      "policy": "classification_precedence",
+      "precedence_order": ["classification_tier", "service_type"],
+      "classification_mapping": {
+        "RESTRICTED": "PRIVATE",
+        "CONFIDENTIAL": "PRIVATE",
+        "INTERNAL": "PUBLIC",
+        "PUBLIC": "PUBLIC"
+      },
+      "service_type_fallback": {
+        "fund_transfer": "PRIVATE",
+        "account_balance_inquiry": "PRIVATE",
+        "kyc_verification": "PRIVATE",
+        "loan_application": "PRIVATE",
+        "credit_risk_evaluation": "PRIVATE",
+        "transaction_history": "PRIVATE",
+        "batch_analytics_report": "PUBLIC",
+        "exchange_rate_lookup": "PUBLIC",
+        "branch_atm_locator": "PUBLIC",
+        "interest_rate_calculator": "PUBLIC",
+        "customer_support_faq": "PUBLIC"
+      }
+    }
+  }
+}

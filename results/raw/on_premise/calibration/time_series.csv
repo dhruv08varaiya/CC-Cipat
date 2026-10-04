@@ -1,0 +1,3 @@
+timestamp_sec,queue_length,active_cores,server_utilization_pct,active_db_connections,db_utilization_pct,cumulative_completed,cumulative_dropped,cumulative_failed
+0.0,0,0,0.0,0,0.0,0,0,0
+0.341,0,0,0.0,0,0.0,200,0,0

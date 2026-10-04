@@ -1,0 +1,72 @@
+{
+  "workloads": {
+    "W1": {
+      "name": "Normal Workload",
+      "description": "Standard steady-state operational banking load within normal business capacity.",
+      "duration_seconds": 180,
+      "base_rate_rps": 600,
+      "distribution": "poisson",
+      "profile": "steady",
+      "failure_injection": null
+    },
+    "W2": {
+      "name": "Peak Workload",
+      "description": "Daily peak banking traffic (e.g., lunchtime or business opening hours).",
+      "duration_seconds": 180,
+      "base_rate_rps": 1400,
+      "distribution": "poisson",
+      "profile": "ramp_up_steady",
+      "failure_injection": null
+    },
+    "W3": {
+      "name": "Extreme Workload",
+      "description": "Stress-test volume exceeding on-premise static capacity to evaluate throttling and queuing bottlenecks.",
+      "duration_seconds": 180,
+      "base_rate_rps": 2600,
+      "distribution": "poisson",
+      "profile": "high_sustained",
+      "failure_injection": null
+    },
+    "W4": {
+      "name": "Burst Workload",
+      "description": "Sudden traffic spikes simulating salary credit days or promotional financial events.",
+      "duration_seconds": 240,
+      "base_rate_rps": 600,
+      "distribution": "bursty",
+      "profile": "burst",
+      "burst_config": {
+        "burst_start_sec": 60,
+        "burst_duration_sec": 60,
+        "burst_rate_rps": 2800
+      },
+      "failure_injection": null
+    },
+    "W5": {
+      "name": "Failure Workload",
+      "description": "Workload with an unexpected server outage injected mid-run to test fault impact.",
+      "duration_seconds": 200,
+      "base_rate_rps": 1200,
+      "distribution": "poisson",
+      "profile": "steady_with_fault",
+      "failure_injection": {
+        "trigger_time_sec": 60,
+        "failed_server_percentage": 0.50,
+        "recovery_enabled": false
+      }
+    },
+    "W6": {
+      "name": "Recovery Workload",
+      "description": "Fault injection followed by automated health checks, replica failover, and disaster recovery.",
+      "duration_seconds": 240,
+      "base_rate_rps": 1200,
+      "distribution": "poisson",
+      "profile": "steady_with_recovery",
+      "failure_injection": {
+        "trigger_time_sec": 60,
+        "failed_server_percentage": 0.50,
+        "recovery_enabled": true,
+        "recovery_delay_sec": 30
+      }
+    }
+  }
+}

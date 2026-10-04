@@ -1,0 +1,104 @@
+{
+  "metadata": {
+    "architecture": "Hybrid-Cloud-Autoscaling",
+    "workload_id": "W4",
+    "random_seed": 42,
+    "simulation_duration_sec": 9.075
+  },
+  "request_accounting": {
+    "total_requests": 12000,
+    "completed_requests": 12000,
+    "dropped_requests": 0,
+    "failed_requests": 0,
+    "availability_pct": 100.0
+  },
+  "performance_metrics": {
+    "throughput_rps": 1322.28,
+    "avg_response_time_ms": 61.38,
+    "median_response_time_ms": 27.57,
+    "p95_response_time_ms": 343.1,
+    "p99_response_time_ms": 500.21,
+    "min_response_time_ms": 12.65,
+    "max_response_time_ms": 551.17,
+    "std_response_time_ms": 101.85,
+    "mean_waiting_time_ms": 39.0,
+    "mean_service_time_ms": 22.38
+  },
+  "resource_utilization": {
+    "avg_server_utilization_pct": 52.85,
+    "peak_server_utilization_pct": 91.07,
+    "avg_database_utilization_pct": 14.9,
+    "avg_queue_length": 30.29,
+    "max_queue_length": 234
+  },
+  "tier_breakdown": {
+    "private_tier": {
+      "total_cores": 48,
+      "total_requests": 8676,
+      "completed_requests": 8676,
+      "dropped_requests": 0,
+      "avg_utilization_pct": 44.93,
+      "avg_response_time_ms": 25.93,
+      "p95_response_time_ms": 32.01
+    },
+    "public_tier": {
+      "total_cores": 8,
+      "total_requests": 3324,
+      "completed_requests": 3324,
+      "dropped_requests": 0,
+      "avg_utilization_pct": 100.0,
+      "avg_response_time_ms": 153.91,
+      "p95_response_time_ms": 490.22
+    },
+    "routing_summary": {
+      "private_ratio_pct": 72.3,
+      "public_ratio_pct": 27.7
+    }
+  },
+  "autoscaling_summary": {
+    "scaling_events_total": 3,
+    "scale_out_count": 1,
+    "scale_in_count": 2,
+    "min_public_instances": 2,
+    "max_public_instances": 6,
+    "avg_public_instances": 3.0,
+    "events": [
+      {
+        "event_id": "SCALE_EVT_001",
+        "timestamp_sec": 7.0,
+        "event_type": "SCALE_OUT",
+        "old_instance_count": 2,
+        "new_instance_count": 6,
+        "trigger": "sustained_high_utilization",
+        "utilization_pct": 100.0,
+        "queue_length": 165,
+        "reason": "Public utilization reached 100.0% >= threshold 70.0% for 2 intervals",
+        "provisioning_delay_sec": 0.8
+      },
+      {
+        "event_id": "SCALE_EVT_002",
+        "timestamp_sec": 10.0,
+        "event_type": "SCALE_IN",
+        "old_instance_count": 6,
+        "new_instance_count": 4,
+        "trigger": "sustained_low_utilization",
+        "utilization_pct": 0.0,
+        "queue_length": 0,
+        "reason": "Public utilization dropped to 0.0% <= threshold 35.0% for 2 intervals",
+        "provisioning_delay_sec": 0.0
+      },
+      {
+        "event_id": "SCALE_EVT_003",
+        "timestamp_sec": 11.5,
+        "event_type": "SCALE_IN",
+        "old_instance_count": 4,
+        "new_instance_count": 2,
+        "trigger": "sustained_low_utilization",
+        "utilization_pct": 0.0,
+        "queue_length": 0,
+        "reason": "Public utilization dropped to 0.0% <= threshold 35.0% for 2 intervals",
+        "provisioning_delay_sec": 0.0
+      }
+    ]
+  }
+}

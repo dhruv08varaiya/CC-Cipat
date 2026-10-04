@@ -1,0 +1,70 @@
+{
+  "experiment_id": "E3",
+  "workload_id": "W3",
+  "academic_validation": {
+    "request_identity_verified": true,
+    "validation_message": "Verified: Identical 15,000 unique request IDs evaluated in both architectures.",
+    "total_requests": 15000
+  },
+  "on_premise": {
+    "total_cores": 64,
+    "completed_requests": 15000,
+    "dropped_requests": 0,
+    "availability_pct": 100.0,
+    "throughput_rps": 2547.84,
+    "avg_response_time_ms": 36.46,
+    "median_response_time_ms": 35.54,
+    "p95_response_time_ms": 57.48,
+    "p99_response_time_ms": 65.5,
+    "mean_waiting_time_ms": 9.4,
+    "avg_server_utilization_pct": 100.0,
+    "avg_database_utilization_pct": 33.93,
+    "max_queue_length": 24
+  },
+  "hybrid_cloud": {
+    "total_cores": 56,
+    "completed_requests": 15000,
+    "dropped_requests": 0,
+    "availability_pct": 100.0,
+    "throughput_rps": 2169.25,
+    "avg_response_time_ms": 181.09,
+    "median_response_time_ms": 27.38,
+    "p95_response_time_ms": 912.1,
+    "p99_response_time_ms": 1058.86,
+    "mean_waiting_time_ms": 158.74,
+    "avg_server_utilization_pct": 86.56,
+    "avg_database_utilization_pct": 24.07,
+    "max_queue_length": 560,
+    "tier_breakdown": {
+      "private_tier": {
+        "total_cores": 48,
+        "total_requests": 10736,
+        "completed_requests": 10736,
+        "dropped_requests": 0,
+        "avg_utilization_pct": 72.83,
+        "avg_response_time_ms": 25.63,
+        "p95_response_time_ms": 31.46
+      },
+      "public_tier": {
+        "total_cores": 8,
+        "total_requests": 4264,
+        "completed_requests": 4264,
+        "dropped_requests": 0,
+        "avg_utilization_pct": 100.0,
+        "avg_response_time_ms": 572.49,
+        "p95_response_time_ms": 1052.29
+      },
+      "routing_summary": {
+        "private_ratio_pct": 71.57,
+        "public_ratio_pct": 28.43
+      }
+    }
+  },
+  "comparative_deltas": {
+    "avg_response_time_delta_ms": 144.63,
+    "avg_response_time_pct_change": 396.68,
+    "p95_response_time_delta_ms": 854.62,
+    "p95_response_time_pct_change": 1486.81,
+    "throughput_delta_rps": -378.59
+  }
+}

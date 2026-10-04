@@ -1,0 +1,100 @@
+{
+  "experiment": "E4",
+  "title": "Burst Workload & Public Cloud Autoscaling Dynamics",
+  "workload": "W4 (Burst 600 -> 2,800 RPS)",
+  "validation": {
+    "passed": true,
+    "total_requests": 12000,
+    "matched_ids_pct": 100.0
+  },
+  "fixed_architecture": {
+    "name": "Hybrid-Cloud-Fixed",
+    "public_cores": 8,
+    "public_instances": 2,
+    "autoscaling_enabled": false
+  },
+  "autoscaling_architecture": {
+    "name": "Hybrid-Cloud-Autoscaling",
+    "min_instances": 2,
+    "max_instances": 6,
+    "avg_instances": 3.0,
+    "scaling_events_count": 3,
+    "scale_out_count": 1,
+    "scale_in_count": 2,
+    "autoscaling_enabled": true
+  },
+  "metrics_comparison": {
+    "throughput_rps": {
+      "fixed": 1226.34,
+      "autoscaling": 1322.28,
+      "delta": {
+        "absolute": 95.94,
+        "percent": 7.82
+      }
+    },
+    "avg_response_time_ms": {
+      "fixed": 101.13,
+      "autoscaling": 61.38,
+      "delta": {
+        "absolute": -39.75,
+        "percent": -39.31
+      }
+    },
+    "median_response_time_ms": {
+      "fixed": 27.6,
+      "autoscaling": 27.57,
+      "delta": {
+        "absolute": -0.03,
+        "percent": -0.11
+      }
+    },
+    "p95_response_time_ms": {
+      "fixed": 555.02,
+      "autoscaling": 343.1,
+      "delta": {
+        "absolute": -211.92,
+        "percent": -38.18
+      }
+    },
+    "p99_response_time_ms": {
+      "fixed": 698.39,
+      "autoscaling": 500.21,
+      "delta": {
+        "absolute": -198.18,
+        "percent": -28.38
+      }
+    },
+    "avg_queue_length": {
+      "fixed": 85.0,
+      "autoscaling": 30.29,
+      "delta": {
+        "absolute": -54.71,
+        "percent": -64.36
+      }
+    },
+    "max_queue_length": {
+      "fixed": 435,
+      "autoscaling": 234,
+      "delta": {
+        "absolute": -201.0,
+        "percent": -46.21
+      }
+    },
+    "avg_server_utilization_pct": {
+      "fixed": 49.02,
+      "autoscaling": 52.85,
+      "delta": {
+        "absolute": 3.83,
+        "percent": 7.81
+      }
+    },
+    "public_tier_avg_response_time_ms": {
+      "fixed": 297.4,
+      "autoscaling": 153.91,
+      "delta": {
+        "absolute": -143.49,
+        "percent": -48.25
+      }
+    }
+  }
+}

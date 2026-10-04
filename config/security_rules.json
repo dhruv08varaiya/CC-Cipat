@@ -1,0 +1,53 @@
+{
+  "classification_levels": {
+    "RESTRICTED": {
+      "level": 4,
+      "description": "Highly sensitive banking data (KYC, national IDs, credentials, core ledger balances).",
+      "allowed_destination": "PRIVATE_CLOUD_ONLY",
+      "encryption_required": "AES-256-GCM",
+      "tokenization_required": true,
+      "logging_level": "AUDIT_FULL",
+      "compliance_frameworks": ["PCI-DSS", "GDPR", "RBI-CyberSecurity"]
+    },
+    "CONFIDENTIAL": {
+      "level": 3,
+      "description": "Sensitive customer transaction logs, loan records, credit risk parameters.",
+      "allowed_destination": "PRIVATE_CLOUD_PREFERRED",
+      "encryption_required": "AES-256-CBC",
+      "tokenization_required": false,
+      "logging_level": "AUDIT_STANDARD",
+      "compliance_frameworks": ["PCI-DSS", "BankingRegulation"]
+    },
+    "INTERNAL": {
+      "level": 2,
+      "description": "Non-PII operational logs, aggregated branch volume, system health metrics.",
+      "allowed_destination": "HYBRID_ALLOW_PUBLIC",
+      "encryption_required": "TLS-1.3",
+      "tokenization_required": false,
+      "logging_level": "INFO",
+      "compliance_frameworks": ["InternalGovernance"]
+    },
+    "PUBLIC": {
+      "level": 1,
+      "description": "Publicly accessible info (forex rates, branch locations, interest rate FAQs).",
+      "allowed_destination": "PUBLIC_CLOUD_PRIMARY",
+      "encryption_required": "TLS-1.3",
+      "tokenization_required": false,
+      "logging_level": "BASIC",
+      "compliance_frameworks": ["StandardWebSecurity"]
+    }
+  },
+  "service_classification_mapping": {
+    "account_balance_inquiry": "CONFIDENTIAL",
+    "fund_transfer": "RESTRICTED",
+    "kyc_verification": "RESTRICTED",
+    "loan_application": "CONFIDENTIAL",
+    "credit_risk_evaluation": "CONFIDENTIAL",
+    "transaction_history": "CONFIDENTIAL",
+    "exchange_rate_lookup": "PUBLIC",
+    "branch_atm_locator": "PUBLIC",
+    "interest_rate_calculator": "PUBLIC",
+    "batch_analytics_report": "INTERNAL",
+    "customer_support_faq": "PUBLIC"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "metadata": {
+    "architecture": "Hybrid-Cloud",
+    "workload_id": "W3",
+    "random_seed": 42,
+    "simulation_duration_sec": 6.915
+  },
+  "request_accounting": {
+    "total_requests": 15000,
+    "completed_requests": 15000,
+    "dropped_requests": 0,
+    "failed_requests": 0,
+    "availability_pct": 100.0
+  },
+  "performance_metrics": {
+    "throughput_rps": 2169.25,
+    "avg_response_time_ms": 181.09,
+    "median_response_time_ms": 27.38,
+    "p95_response_time_ms": 912.1,
+    "p99_response_time_ms": 1058.86,
+    "min_response_time_ms": 12.4,
+    "max_response_time_ms": 1102.4,
+    "std_response_time_ms": 295.73,
+    "mean_waiting_time_ms": 158.74,
+    "mean_service_time_ms": 22.35
+  },
+  "resource_utilization": {
+    "avg_server_utilization_pct": 86.56,
+    "peak_server_utilization_pct": 100.0,
+    "avg_database_utilization_pct": 24.07,
+    "avg_queue_length": 292.75,
+    "max_queue_length": 560
+  },
+  "tier_breakdown": {
+    "private_tier": {
+      "total_cores": 48,
+      "total_requests": 10736,
+      "completed_requests": 10736,
+      "dropped_requests": 0,
+      "avg_utilization_pct": 72.83,
+      "avg_response_time_ms": 25.63,
+      "p95_response_time_ms": 31.46
+    },
+    "public_tier": {
+      "total_cores": 8,
+      "total_requests": 4264,
+      "completed_requests": 4264,
+      "dropped_requests": 0,
+      "avg_utilization_pct": 100.0,
+      "avg_response_time_ms": 572.49,
+      "p95_response_time_ms": 1052.29
+    },
+    "routing_summary": {
+      "private_ratio_pct": 71.57,
+      "public_ratio_pct": 28.43
+    }
+  }
+}

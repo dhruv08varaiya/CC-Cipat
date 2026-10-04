@@ -1,0 +1,52 @@
+{
+  "validation_status": "PASSED",
+  "error_count": 0,
+  "errors": [],
+  "row_counts": {
+    "customers": 10000,
+    "accounts": 10000,
+    "transactions": 50000,
+    "login_events": 15000,
+    "payment_requests": 25000,
+    "risk_requests": 5000,
+    "notifications": 25000,
+    "audit_logs": 30000
+  },
+  "workload_event_counts": {
+    "W1": 5000,
+    "W2": 10000,
+    "W3": 15000,
+    "W4": 12000,
+    "W5": 8000,
+    "W6": 10000
+  },
+  "financial_metrics": {
+    "account_balance": {
+      "total": 253476797.94,
+      "mean": 25347.68,
+      "median": 25262.2,
+      "min": 1000.32,
+      "max": 49997.21,
+      "std": 14129.19
+    },
+    "transaction_amount": {
+      "total": 12722000.01,
+      "mean": 254.44,
+      "median": 177.4,
+      "min": 5.0,
+      "max": 2777.58,
+      "std": 249.39
+    },
+    "customer_risk_score": {
+      "mean": 0.285,
+      "median": 0.264,
+      "min": 0.01,
+      "max": 0.889
+    }
+  },
+  "classification_distribution": {
+    "RESTRICTED": 35000,
+    "CONFIDENTIAL": 80000,
+    "INTERNAL": 30000
+  }
+}

@@ -1,0 +1,12 @@
+timestamp_sec,queue_length,active_cores,server_utilization_pct,active_db_connections,db_utilization_pct,cumulative_completed,cumulative_dropped,cumulative_failed,private_queue_length,public_queue_length,private_active_cores,public_active_cores,private_utilization_pct,public_utilization_pct,public_instances,public_provisioning_instances,public_draining_instances
+0.0,0,0,0.0,0,0.0,0,0,0,0,0,0,0,0.0,0.0,2,0,0
+1.0,3,17,30.36,4,6.25,542,0,0,0,3,12,5,25.0,62.5,2,0,0
+2.0,4,9,16.07,3,4.69,1123,0,0,1,3,8,1,16.67,12.5,2,0,0
+3.0,0,11,19.64,4,6.25,1698,0,0,0,0,10,1,20.83,12.5,2,0,0
+4.0,1,15,26.79,6,9.38,2274,0,0,0,1,14,1,29.17,12.5,2,0,0
+5.0,0,11,19.64,0,0.0,2854,0,0,0,0,6,5,12.5,62.5,2,0,0
+6.0,3,14,25.0,5,7.81,3539,0,0,0,3,11,3,22.92,37.5,2,0,0
+7.0,171,51,91.07,22,34.38,6134,0,0,0,171,43,8,89.58,100.0,2,0,0
+8.0,318,52,92.86,25,39.06,8722,0,0,4,314,44,8,91.67,100.0,2,0,0
+9.0,435,52,92.86,25,39.06,11384,0,0,3,432,44,8,91.67,100.0,2,0,0
+9.785,0,0,0.0,0,0.0,12000,0,0,0,0,0,0,0.0,0.0,2,0,0

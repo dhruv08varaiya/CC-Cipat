@@ -209,6 +209,107 @@ Under the sudden 2,800 RPS burst, the fixed 8-core public tier will saturate at 
 
 ---
 
+## E7: Sensitive Data Classification & Secure Routing Benchmark
+
+### Objective
+Evaluate the accuracy, computational latency, and compliance effectiveness of rule-based data classification, secure hybrid routing, access control enforcement (Auth, MFA, RBAC), and automated detection of governance violations (R1–R6).
+
+### Workload & Probes
+- **Base Trace**: `data/workloads/W1.jsonl` (5,000 requests, normal daily banking volume, `seed=42`).
+- **Controlled Security Probes**: 100 deterministic security violation probes:
+  - 25 Unauthorized internal access probes (privilege escalation / RBAC bypass) -> Tests R1.
+  - 25 Multi-factor challenge failure probes (missing / expired second-factor proof) -> Tests R1.
+  - 25 Sensitive-data public routing injection probes (attempted leakage of RESTRICTED/CONFIDENTIAL to public tier) -> Tests R2.
+  - 15 Cryptographic key corruption probes -> Tests R4.
+  - 10 Cross-border data residency transfer probes (sovereign PII exported to offshore zones) -> Tests R6.
+- **Total Requests Evaluated**: 5,100 requests.
+
+### Execution Command
+```powershell
+python run_e7_experiment.py --seed 42
+```
+
+### Expected Observation (Hypothesis)
+A two-stage rule-based classifier can accurately identify sensitive records with sub-millisecond inspection latency (< 1.0 ms). The API gateway routing layer will strictly enforce the compliance mapping (RESTRICTED/CONFIDENTIAL $\to$ Private, PUBLIC/INTERNAL $\to$ Public). Any attempted transmission of sensitive data to the public cloud tier will be detected as an R2 violation and automatically redirected to the protected private tier, achieving zero undetected data leakage.
+
+### Actual Results Comparison
+
+#### Classification Performance by Sensitivity Tier
+
+| Sensitivity Tier | Support (Count) | Precision | Recall | F1-Score |
+| :--- | :---: | :---: | :---: | :---: |
+| **RESTRICTED** | 1,310 | 98.05% | 100.00% | **0.9902** |
+| **CONFIDENTIAL** | 2,389 | 100.00% | 98.91% | **0.9945** |
+| **INTERNAL** | 120 | 100.00% | 100.00% | **1.0000** |
+| **PUBLIC** | 1,281 | 100.00% | 100.00% | **1.0000** |
+| **Macro Average / Total** | **5,100** | **99.51%** | **99.73%** | **0.9962** |
+
+- **Overall Classification Accuracy**: **99.49%**
+- **Average Inspection Latency**: **0.38 ms** (Min: 0.25 ms, Max: 0.55 ms)
+
+#### Classification Confusion Matrix
+
+| Ground Truth \ Predicted | RESTRICTED | CONFIDENTIAL | INTERNAL | PUBLIC | Total |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **RESTRICTED** | **1,310** | 0 | 0 | 0 | 1,310 |
+| **CONFIDENTIAL** | 26 | **2,363** | 0 | 0 | 2,389 |
+| **INTERNAL** | 0 | 0 | **120** | 0 | 120 |
+| **PUBLIC** | 0 | 0 | 0 | **1,281** | 1,281 |
+
+#### Secure Hybrid Routing & Interception (R2 Audit)
+
+| Routing Metric | Value | Compliance Status |
+| :--- | :---: | :--- |
+| **Total Requests Routed** | 5,100 | Processed |
+| **Private Cloud Ingress (Protected Zone)** | 3,699 | Core Banking Enclave |
+| **Public Cloud Ingress (Elastic Zone)** | 1,401 | Non-Sensitive Microservices |
+| **Sensitive Records to Private Cloud** | 3,699 | Strictly Compliant |
+| **Injected Public Routing Probes** | 25 | Attack / Error Simulation |
+| **Violations Detected & Intercepted (R2)** | 25 | **100% Interception Rate** |
+| **Undetected Sensitive Leakage to Public** | **0** | **Zero Leakage Invariant Held** |
+| **Routing Compliance Rate** | **100.00%** | Full Regulatory Conformance |
+
+#### Access Control & Cryptographic Telemetry
+
+| Control Subsystem | Invocations | Passed | Blocked / Denied | Success Rate |
+| :--- | :---: | :---: | :---: | :---: |
+| **Authentication (Auth)** | 5,100 | 5,044 | 56 | 98.90% |
+| **Multi-Factor Auth (MFA)** | 1,453 | 1,400 | 53 | 96.35% |
+| **Role-Based Access (RBAC)** | 5,100 | 5,019 | 81 | 98.41% |
+
+- **Data-at-Rest Encrypted Records (AES-256)**: 3,679
+- **Data-in-Transit Encrypted Records (TLS 1.3)**: 5,079
+- **Mean Cryptographic Overhead**: 0.975 ms per request
+
+#### Simulated Governance Risk Events (R1–R6)
+
+| Risk ID | Category | Events Detected | Severity | Action Taken |
+| :--- | :--- | :---: | :--- | :--- |
+| **R1** | Access Control (Unauthorized Role / MFA Bypass) | 134 | Medium / High | BLOCKED |
+| **R2** | Data Governance (Sensitive Data to Public Tier) | 25 | Critical / High | REDIRECTED_TO_PRIVATE |
+| **R3** | Vendor Governance (Control Risk Deviation) | 0 | Medium | ALERT_LOGGED |
+| **R4** | Cryptography (Key Management / Cipher Error) | 21 | High | QUARANTINED |
+| **R5** | Availability (Security Subsystem Outage) | 0 | High | TRAFFIC_SHED |
+| **R6** | Compliance (Cross-Border Data Residency Breach) | 10 | Critical | BLOCKED |
+| **Total** | **All Categories** | **190** | — | — |
+
+### Generated Publication Figures (`results/figures/E7/`)
+1. `1_classification_distribution.png`: Bar chart of dataset distribution across the 4 sensitivity tiers.
+2. `2_confusion_matrix.png`: Heatmap confusion matrix of ground-truth vs predicted tiers.
+3. `3_precision_recall_f1_by_class.png`: Grouped bar chart comparing precision, recall, and F1 by class.
+4. `4_classification_latency_distribution.png`: Histogram showing classification latency distribution (mean: 0.38 ms).
+5. `5_routing_destination_by_classification.png`: Stacked bar chart showing target tier by classification.
+6. `6_sensitive_data_routing_violations.png`: Comparison of clean traffic vs injected probes showing 100% R2 interception.
+7. `7_auth_mfa_rbac_outcomes.png`: Bar chart of Success vs Blocked across Auth, MFA, and RBAC subsystems.
+8. `8_security_event_severity_distribution.png`: Distribution of detected governance events across R1–R6.
+
+### Critical Academic Finding
+1. **Explainable High-Accuracy Classification**: Rule-based two-stage classification achieved **99.49% accuracy** and **0.9962 Macro F1** while introducing only **0.38 ms** of computational inspection overhead.
+2. **Zero-Tolerance Leakage Prevention**: Injected attempts to route sensitive data to the public cloud were **100% intercepted and redirected** to the private cloud, validating the zero-leakage security invariant.
+3. **Comprehensive Defense-in-Depth**: Multi-layered controls (Auth, MFA, RBAC, Encryption) operated harmoniously without blocking legitimate customer transactions.
+
+---
+
 ## E5–E8 Planned Experiments Status Tracker
 
 | Experiment ID | Title | Workload | Status | Notes |
@@ -219,5 +320,5 @@ Under the sudden 2,800 RPS burst, the fixed 8-core public tier will saturate at 
 | **E4** | Burst Workload + Autoscaling | W4 (Burst) | **COMPLETE** | Fixed Hybrid vs Autoscaling Hybrid |
 | **E5** | Application Server Failure Resilience | W5 (Failure) | *Not yet executed* | Scheduled for Stage 7 |
 | **E6** | Backup & Disaster Recovery (RTO/RPO) | W6 (Recovery) | *Not yet executed* | Scheduled for Stage 7 |
-| **E7** | Sensitive Data Classification & Routing | Multi-tier | *Not yet executed* | Scheduled for Stage 6 |
+| **E7** | Sensitive Data Classification & Secure Routing | Multi-tier | **COMPLETE** | Rule-Based Classifier & R1-R6 Governance |
 | **E8** | Privacy-Preserving ML / Encryption Overhead | Optional | *Not yet executed* | Scheduled for Stage 8 |

@@ -27,8 +27,8 @@ This project simulates the transition of a commercial banking infrastructure fro
 | **8. How do I generate data?** | Run `python generate_data.py --profile medium`. |
 | **9. How do I run the simulation?** | Run `python run_on_premise_sim.py --workload W1 --seed 42`. |
 | **10. Where are the results?** | [`results/raw/on_premise/`](file:///d:/Study/Sem%207/Cloud%20Computing%20%283170717%29/Cipat/results/raw/on_premise/), [`results/raw/hybrid_cloud/`](file:///d:/Study/Sem%207/Cloud%20Computing%20%283170717%29/Cipat/results/raw/hybrid_cloud/), [`results/raw/comparison/`](file:///d:/Study/Sem%207/Cloud%20Computing%20%283170717%29/Cipat/results/raw/comparison/). |
-| **11. What stage are we currently on?** | **Stage 5: Dynamic Load Balancing & Public Cloud Autoscaling (COMPLETE)**. |
-| **12. What should I work on next?** | **Stage 6: Security & Data-Classification Module** (NOT STARTED). |
+| **11. What stage are we currently on?** | **Stage 6: Security & Data-Classification Module (COMPLETE)**. |
+| **12. What should I work on next?** | **Stage 7: Failure, Chaos Injection & Disaster Recovery (E5/E6)** (NOT STARTED). |
 
 ---
 
@@ -101,7 +101,8 @@ Cipat/
 ├── config/                             # Simulation, workload, and security configurations
 │   ├── simulation_config.json
 │   ├── workloads_config.json
-│   └── security_rules.json
+│   ├── security_rules.json
+│   └── security_risk_register.json
 ├── data/
 │   ├── synthetic/                      # Synthetic accounts and transactions
 │   └── workloads/                      # Generated workload traces (W1-W6)
@@ -200,11 +201,16 @@ python run_e4_experiment.py --seed 42
 python run_hybrid_cloud_sim.py --workload W4 --autoscaling --seed 42
 ```
 
-### 12. Run All Automated Tests
+### 12. Run Experiment E7 (Sensitive Data Classification & Secure Routing)
+Execute the Stage 6 security governance benchmark evaluating automated classification, RBAC, MFA, cryptographic overhead, and policy violation detection:
+```powershell
+# Run Experiment E7 and generate all 8 publication figures:
+python run_e7_experiment.py --seed 42
+```
+
+### 13. Run All Automated Tests
 ```powershell
 python -m unittest discover tests
 ```
 
 
-#   C C - C i p a t  
- 

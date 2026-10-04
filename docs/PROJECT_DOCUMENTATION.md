@@ -3,8 +3,8 @@
 **Project Title**: Digital Banking System — Secure Hybrid Cloud Migration Simulation  
 **Academic Context**: Final-Year Computer Engineering CIPAT Project (Academic Prototype & Simulation)  
 **Authors**: Final-Year Project Team  
-**Version**: 1.3.0  
-**Current Milestone**: Stage 5 — Dynamic Load Balancing & Elastic Autoscaling (COMPLETE)  
+**Version**: 1.4.0  
+**Current Milestone**: Stage 6 — Security & Data Classification Module (COMPLETE)  
 
 ---
 
@@ -155,12 +155,36 @@ Six deterministic, seed-based workload traces (`seed=42`) stored as JSON Lines i
 
 ---
 
-## 11. Security Model
-Four hierarchical data classification tiers:
-1. `RESTRICTED` (Level 4): PII, KYC, passwords, core ledger balances.
-2. `CONFIDENTIAL` (Level 3): Transaction records, loan files, credit scores.
-3. `INTERNAL` (Level 2): Operational metrics, non-PII branch volume.
-4. `PUBLIC` (Level 1): Public FAQs, branch locators, forex exchange rates.
+## 11. Security & Data Classification Model (Stage 6 Implementation)
+The security architecture enforces fine-grained governance, policy-based routing, and access control across four regulatory sensitivity tiers:
+
+### 11.1 Sensitivity Tiers
+1. `RESTRICTED` (Level 4): PII, KYC records, authentication credentials, passwords, cryptographic keys, core ledger balances. Destination: `PRIVATE_CLOUD_ONLY`. Encryption: AES-256-GCM at rest + TLS 1.3 in transit.
+2. `CONFIDENTIAL` (Level 3): Transaction records, loan applications, credit/risk evaluations, customer balances. Destination: `PRIVATE_CLOUD_PREFERRED`. Encryption: AES-256-CBC at rest + TLS 1.3 in transit.
+3. `INTERNAL` (Level 2): Non-PII operational logs, aggregated branch volume, batch reports, system health metrics. Destination: `HYBRID_ALLOW_PUBLIC`. Encryption: TLS 1.3 in transit.
+4. `PUBLIC` (Level 1): Publicly accessible info (forex rates, branch locations, interest rate FAQs). Destination: `PUBLIC_CLOUD_PRIMARY`. Encryption: TLS 1.3 in transit.
+
+### 11.2 Core Security Subsystems
+- **Two-Stage Rule-Based Data Classifier (`DataClassifier`)**:
+  - *Stage 1*: Deep-payload taint scanning for secret credentials (`*password*`, `*secret*`, `*token*`, `*kyc*`). Escalate immediately to `RESTRICTED`.
+  - *Stage 2*: Service catalog contract lookup and schema field-pattern analysis.
+  - *Zero-Trust Safe Fallback*: Unrecognized payloads default to `RESTRICTED` and route to the Private Cloud.
+  - Achieved **99.49% classification accuracy** and **0.9962 Macro F1** with $0.38$ ms inspection latency.
+- **Access Control & Identity (`Authenticator`, `MFACoordinator`, `RBACAuthorizer`)**:
+  - Evaluates user sessions, simulated token verification (98.90% success).
+  - Enforces mandatory multi-factor authentication for high-impact operations (`fund_transfer`, `kyc_verification`, `loan_application`) (96.35% pass rate).
+  - Enforces four-tier banking role matrix (`CUSTOMER`, `BANK_OPERATOR`, `SECURITY_AUDITOR`, `ADMIN`) (98.41% authorization rate).
+- **Cryptographic Abstraction (`EncryptionManager`)**:
+  - Simulates computational overhead for Data-at-Rest (`AES-256-GCM`, $0.8$ ms) and Data-in-Transit (`TLS 1.3`, $0.4$ ms). Mean cryptographic overhead: $0.975$ ms per request.
+- **Security Event & Violation Detection (`SecurityViolationDetector`)**:
+  - Tracks simulation governance risks R1–R6. Intercepts 100% of attempted sensitive-to-public routing probes (R2).
+- **Immutable Audit Logging (`SecurityAuditLogger`)**:
+  - Structured JSON Lines audit log (`results/raw/security/audit_log.jsonl`).
+- **Security Risk Register (`RiskRegister`)**:
+  - Formally documents 6 cloud governance risks (R1–R6) with mathematical scoring ($\text{Risk Score} = \text{Likelihood} \times \text{Impact}$).
+
+> **ACADEMIC DISCLAIMER**: Stage 6 security mechanisms are simulation abstractions for academic evaluation and are not production banking security controls.
+
 
 ---
 
@@ -222,17 +246,45 @@ Every experiment:
 | **Maximum Queue Length** | 435 | 234 | -201 | -46.21% |
 | **Average Resource Utilization** | 49.02% | 52.85% | +3.83% | +7.81% |
 
+### Experiment E7: Sensitive Data Classification & Secure Routing (Stage 6)
+
+| Metric Category | Performance Metric | Measured Empirical Value | Target / Requirement |
+| :--- | :--- | :--- | :--- |
+| **Classification Accuracy** | Overall Accuracy | **99.49%** | $\ge 95.0\%$ |
+| | Macro Precision / Recall / F1 | **0.9951 / 0.9973 / 0.9962** | $\ge 0.95$ |
+| | RESTRICTED Class F1 Score | **0.9902** (100% recall, 0 false negatives) | Zero leakage |
+| | CONFIDENTIAL Class F1 Score | **0.9945** (1.000 precision, 2,363 TP) | High precision |
+| | INTERNAL & PUBLIC Class F1 | **1.0000 & 1.0000** | Perfect separation |
+| | Mean Classification Latency | **0.377 ms** | $\le 1.0$ ms |
+| **Secure Compliance Routing** | Total Requests Evaluated | **5,100** (5,000 W1 baseline + 100 probe requests) | Full trace |
+| | Routed to Private Tier | **3,699** (72.53%) | Sensitive containment |
+| | Routed to Public Elastic Tier | **1,401** (27.47%) | Non-sensitive offload |
+| | Injected Violation Probes Attempted | **25 probes** (attempting public breach) | Active probing |
+| | Injected Violation Probes Intercepted | **25 probes (100.0% blocked & re-routed)** | 100% interception |
+| | Undetected Sensitive Leakage Events | **0 (Zero Tolerance Maintained)** | Exactly 0 |
+| **Access Control & Identity** | Authentication Success Rate | **98.90%** (5,044 allowed, 56 rejected) | Realistic telemetry |
+| | MFA Step-up Success Rate | **96.35%** (1,400 passed, 53 rejected) | Sensitive operations |
+| | RBAC Authorization Success Rate | **98.41%** (5,019 allowed, 81 denied) | 4-tier matrix |
+| **Cryptographic Abstraction** | Mean Crypto Overhead per Request | **0.975 ms** (AES-256 + TLS 1.3 models) | Calibrated model |
+| | At-Rest Encrypted Records | **3,679** (RESTRICTED + CONFIDENTIAL) | Storage protection |
+| | In-Transit Encrypted Records | **5,079** (TLS 1.3 across hybrid boundary) | Channel protection |
+| | Total Security Violations Detected | **190 events** (R1: 134, R2: 25, R4: 21, R6: 10) | JSON Lines audit log |
+
 ### Key Experimental Insights
 1. **Normal & Peak Offloading (E1 & E2)**: Offloading 28% of non-sensitive queries to the public tier reduced overall average latency by 7.3% and P95 latency by 12.0%, avoiding private core contention.
 2. **Fixed Public Tier Bottleneck under Extreme Load (E3)**: Because Stage 4 deliberately uses a fixed public capacity (8 cores) with **NO AUTOSCALING YET**, the public tier queue surged to 560 requests under 2,600 RPS, causing public average latency to spike to 572.49 ms. Meanwhile, the protected private core tier remained shielded and stable (72.83% utilization, 25.63 ms latency).
 3. **Autoscaling Queue Collapse & Latency Mitigation (E4)**: Under the W4 promotional burst (600 $\to$ 2,800 RPS), horizontal elasticity cut average queue length by **64.36%** and reduced public service latency by **48.25%**, confirming that dynamic autoscaling successfully absorbs traffic spikes without manual operator intervention.
+4. **Data Classification Precision & Zero-Leakage Routing (E7)**: The two-stage automated classifier separated synthetic banking workloads with **99.49% accuracy** and 0.38 ms overhead. Crucially, all 25 intentionally corrupted violation probes attempting to route sensitive data to the public cloud were **100% intercepted**, achieving **zero undetected sensitive data leaks** to external cloud infrastructure.
+5. **Defense-in-Depth Layering (E7)**: Enforcing simulated MFA on sensitive banking endpoints intercepted 53 unauthorized transactional attempts, while RBAC authorization policies prevented 81 role-escalation violations without impacting legitimate customer transactions.
 
 ---
 
 ## 15. Limitations
 1. **Simulation Abstraction**: Interconnect, gateway, and VM provisioning delays are mathematical models calibrated from literature benchmarks, not live cloud hypervisors.
-2. **Load Balancing Granularity**: Round Robin distributes requests evenly across active instances; advanced predictive or reinforcement-learning load balancers are out of scope.
-3. **Deterministic Precedence Routing**: Routing uses rule-based classification and service mappings; dynamic ML-based classification is reserved for Stage 6.
+2. **Security & Cryptographic Abstractions**: Stage 6 security mechanisms (data classifier, auth tokens, MFA challenges, RBAC checks, cryptographic latency) are transparent simulation abstractions designed for academic evaluation. They do not claim live PCI-DSS/SOC2 certification, real hardware HSM/KMS integration, or full homomorphic encryption.
+3. **Rule-Based Classification**: Classification uses a deterministic two-stage rule engine rather than deep neural network models (e.g., PPDNN-CRP or UP-SDCG), prioritizing full explainability and reproducible testing.
+4. **Risk Scoring Simplification**: The security risk register utilizes a standard $5 \times 5$ matrix ($\text{Likelihood} \times \text{Impact}$), not complex FAHP + Dempster-Shafer evidential reasoning.
+5. **Load Balancing Granularity**: Round Robin distributes requests evenly across active instances; advanced predictive or reinforcement-learning load balancers are out of scope.
 
 ---
 
@@ -242,8 +294,9 @@ Every experiment:
 - **Stage 3**: On-Premise Baseline Simulation (COMPLETE)
 - **Stage 4**: Hybrid Cloud Simulation — Fixed Partition Baseline (COMPLETE)
 - **Stage 5**: Dynamic Load Balancing & Elastic Autoscaling (COMPLETE)
-- **Stage 6**: Advanced Data Classification & Security Enforcement (NEXT)
-- **Stage 7**: Failure, Chaos Injection & Automated Disaster Recovery
+- **Stage 6**: Advanced Data Classification & Security Enforcement (COMPLETE)
+- **Stage 7**: Failure, Chaos Injection & Automated Disaster Recovery (NEXT)
 - **Stage 8**: End-to-End Comparative Evaluation (E1–E8)
 - **Stage 9**: Visualizations, Charts & Statistical Analysis
 - **Stage 10**: Final Academic Documentation, CIPAT Report & Presentation Deck
+

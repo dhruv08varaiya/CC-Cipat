@@ -99,4 +99,27 @@ This log records major architectural decisions, trade-offs, options evaluated, a
 - **Reason**: Simple, deterministic, provably stable, and easily explained in viva. Reflects production cloud load balancers (e.g. AWS Application Load Balancer target groups).
 - **Consequences**: Reduced average latency by 39.3% and P95 latency by 38.2% under W4 burst, eliminating queue backlogs while preventing thrashing.
 
+---
+
+### DEC-009: Rule-Based Sensitive Data Classification & Security Governance Architecture
+- **Date**: 2026-10-04
+- **Decision**: Implement a two-stage rule-based data classification engine (`DataClassifier`), multi-factor authentication (`MFACoordinator`), role-based access control (`RBACAuthorizer`), simulated cryptographic overhead model (`EncryptionManager`), security violation detector (`SecurityViolationDetector` for risks R1–R6), structured security audit logger (`SecurityAuditLogger`), and a project-level 6-risk scoring register (`RiskRegister`).
+- **Context**: Banking regulations (PCI-DSS, RBI-CyberSecurity, GDPR) mandate strict segregation of sensitive customer data (KYC, credentials, accounts) from public internet exposures. In migrating to hybrid cloud, the system must ensure zero leakage of confidential data to the public cloud while offloading non-sensitive inquiries.
+- **Literature Motivation**:
+  - *UP-SDCG* motivates the conceptual necessity of automated sensitive data classification.
+  - *PPDNN-CRP* motivates privacy preservation and cryptographic overhead modeling.
+  - *Cloud-outsourcing governance literature* motivates formal monitoring of vendor control risks.
+  - *Financial cloud risk assessment literature* motivates structured scoring of governance risks.
+- **Academic Scope Disclaimer**:
+  - This architecture represents an **academic simulation prototype**.
+  - It does **NOT** claim to reproduce UP-SDCG, FAHP+Dempster-Shafer, homomorphic encryption, or live production HSM/KMS backends.
+  - The classifier is a transparent, explainable **rule-based engine** designed for viva defensibility and deterministic reproducibility (`seed=42`).
+- **Options Considered**:
+  1. *Opaque Machine Learning (Black-Box Classifier)*: Requires extensive training epochs, non-deterministic inference, and risks false negatives without explainability during examination. (Rejected).
+  2. *Two-Stage Deterministic Rule-Based Classification with Taint Escalation* (Selected): Stage 1 performs deep credential taint scanning; Stage 2 maps service contracts and field patterns to regulatory tiers (`RESTRICTED`, `CONFIDENTIAL`, `INTERNAL`, `PUBLIC`).
+- **Consequences**:
+  - Achieved **99.49% overall classification accuracy** and **0.9962 Macro F1** with low overhead (mean $0.38$ ms).
+  - Maintained **100% interception of sensitive data leakage** ($0$ undetected leakage events).
+  - Provided full traceability from literature motivation to empirical benchmark (Experiment E7).
+
 

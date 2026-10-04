@@ -124,7 +124,22 @@ Outputs are generated in:
 
 ---
 
-## 9. Running Tests
+## 9. Running Experiment E7 (Security & Data Classification)
+Execute the complete end-to-end Experiment E7 evaluating rule-based classification, secure compliance routing, access controls, cryptographic overhead, and audit logging:
+```powershell
+# Run Experiment E7 and generate all 8 publication figures:
+python run_e7_experiment.py --seed 42
+```
+Outputs are generated in:
+- `results/raw/security/audit_log.jsonl` (Comprehensive audit log)
+- `results/raw/E7/e7_requests.jsonl` (Processed request telemetry)
+- `results/raw/E7/security_events.jsonl` (Detected governance risk events)
+- `results/processed/E7/e7_summary.json` & `e7_report.md`
+- `results/figures/E7/*.png` (All 8 publication figures)
+
+---
+
+## 10. Running Tests
 Run the entire automated test suite:
 ```powershell
 python -m unittest discover tests
@@ -145,11 +160,14 @@ python -m unittest tests/test_hybrid_cloud_sim.py
 
 # Public cloud horizontal autoscaling, load balancing & draining:
 python -m unittest tests/test_autoscaling.py
+
+# Security classification, Auth/MFA/RBAC, crypto overhead, and risk detection:
+python -m unittest tests/test_security_module.py
 ```
 
 ---
 
-## 10. Finding Results
+## 11. Finding Results
 Simulation outputs are structured in `results/`:
 - `results/raw/on_premise/<workload>/`: On-premise baseline runs.
 - `results/raw/hybrid_cloud/<workload>/`: Hybrid cloud baseline runs.
@@ -158,10 +176,14 @@ Simulation outputs are structured in `results/`:
 - `results/raw/comparison/<experiment>/`: Comparative analyses for E1, E2, E3.
 - `results/processed/E4/`: Processed summary statistics and Markdown table for E4.
 - `results/figures/E4/`: 8 publication figures for Experiment E4.
+- `results/raw/security/audit_log.jsonl`: Structured security audit trail.
+- `results/raw/E7/`: E7 request-level telemetry and security events.
+- `results/processed/E7/`: E7 executive summary and markdown report.
+- `results/figures/E7/`: 8 publication figures for Experiment E7.
 
 ---
 
-## 10. Troubleshooting
+## 12. Troubleshooting
 - **Error: `ModuleNotFoundError: No module named 'simpy'`**  
   *Fix*: Run `python -m pip install -r requirements.txt`.
 - **Error: `Workload trace not found`**  
@@ -170,3 +192,4 @@ Simulation outputs are structured in `results/`:
   *Fix*: Ensure both On-Premise and Hybrid Cloud simulations have been executed on the same workload trace before running `run_comparison.py`.
 - **Accounting Invariant Warning**  
   *Fix*: The simulation engine enforces $\text{Total} = \text{Completed} + \text{Dropped} + \text{Failed}$. If an error is thrown, check if a process terminated prematurely or an exception occurred in the discrete-event loop.
+

@@ -156,4 +156,66 @@ In addition to Stage 4 telemetry fields:
 - `autoscaling_architecture`: Dynamic metrics, peak instances (6), scaling action counts.
 - `metrics_comparison`: Absolute deltas and percentage shifts across throughput, avg/median/P95/P99 latency, queue lengths, and resource utilization.
 
+### 3.8 `results/raw/security/audit_log.jsonl` Schema (Stage 6)
+Every row represents a security, access control, classification, or routing audit record:
+- `log_id`: Unique identifier (e.g. `AUDIT_0000001`).
+- `timestamp`: Simulation timestamp (seconds).
+- `category`: Audit event category (`AUTH`, `MFA`, `RBAC`, `CLASSIFICATION`, `ROUTING`, `ENCRYPTION`, `VIOLATION`).
+- `request_id`: Workload request ID or probe ID.
+- `user_id`: Simulated user identity (e.g. `CUST_007980`).
+- `role`: User role (`CUSTOMER`, `BANK_OPERATOR`, `SECURITY_AUDITOR`, `ADMIN`).
+- `action`: Specific security operation (`INSPECT_AND_CLASSIFY`, `SESSION_AUTHENTICATE`, `EVALUATE_PERMISSION`, `VERIFY_CHALLENGE`, `ROUTE_REQUEST`, `APPLY_CRYPTOGRAPHY`).
+- `outcome`: Operation outcome (`SUCCESS`, `DENIED`, `FLAGGED`, `REDIRECTED`).
+- `details`: Structured payload containing rule matches, latency overheads, or violation metadata.
+
+### 3.9 `results/raw/E7/security_events.jsonl` Schema (Stage 6)
+Every row represents a detected security or governance risk event:
+- `event_id`: Unique security event identifier (e.g. `SEC_EVT_00001`).
+- `timestamp`: Simulation timestamp (seconds).
+- `event_type`: Governance risk identifier (`R1`–`R6`).
+- `severity`: Event severity (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`).
+- `request_id`: Associated request ID.
+- `source_component`: Originating module (`REQUEST_ROUTER`, `AUTHENTICATOR`, `MFA_COORDINATOR`, `RBAC_AUTHORIZER`, `ENCRYPTION_MANAGER`, `DATA_RESIDENCY_FILTER`).
+- `description`: Explanatory security alert text.
+- `detected`: Boolean flag confirming real-time detection (`true`).
+- `action_taken`: Enforcement action (`BLOCKED`, `REDIRECTED_TO_PRIVATE`, `ALERT_LOGGED`, `QUARANTINED`, `TRAFFIC_SHED`).
+
+### 3.10 `results/processed/E7/e7_summary.json` Schema (Stage 6)
+- `experiment_id`: `E7`.
+- `title`: Sensitive Data Classification & Secure Routing Benchmark.
+- `classification_metrics`:
+  - `overall_accuracy_pct`: Global accuracy percentage across all requests.
+  - `macro_precision`, `macro_recall`, `macro_f1_score`: Macro-averaged statistical metrics.
+  - `avg_latency_ms`: Computational inspection latency.
+  - `class_distribution`: Ground-truth support counts for RESTRICTED, CONFIDENTIAL, INTERNAL, PUBLIC.
+  - `per_class`: Detailed precision, recall, and F1 per class.
+  - `confusion_matrix`: 4x4 matrix mapping actual vs predicted counts.
+- `routing_metrics`:
+  - `total_routed`: Ingested request count.
+  - `routed_to_private`, `routed_to_public`: Per-tier counts.
+  - `sensitive_records_routed_to_private`: Protected records count.
+  - `injected_violations_attempted`: R2 probes count.
+  - `injected_violations_blocked`: Intercepted leakages count.
+  - `sensitive_leakage_events`: Undetected leakage count (target: 0).
+  - `routing_compliance_rate_pct`: Percentage adherence to compliance policy.
+- `security_metrics`:
+  - Subsystem counters and success rates for Auth, MFA, and RBAC.
+  - Cryptographic counters: at-rest count, in-transit count, mean overhead (ms).
+- `event_metrics`: Counts of detected events by risk type (`R1`–`R6`) and severity.
+
+---
+
+## 4. Security Risk Register Schema (`config/security_risk_register.json`)
+- `risk_id`: Risk code (`R1` through `R6`).
+- `category`: Governance domain (`ACCESS_CONTROL`, `DATA_GOVERNANCE`, `VENDOR_GOVERNANCE`, `CRYPTOGRAPHY`, `AVAILABILITY`, `COMPLIANCE`).
+- `title`: Concise risk summary.
+- `description`: Detailed risk scenario.
+- `likelihood`: Integer Likelihood rating on a scale of $1$ (Rare) to $5$ (Almost Certain).
+- `impact`: Integer Impact rating on a scale of $1$ (Negligible) to $5$ (Catastrophic).
+- `risk_score`: Mathematical product $\text{Likelihood} \times \text{Impact}$ (Range: $1$ to $25$).
+- `risk_level`: Evaluated severity tier (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`).
+- `mitigation`: Concrete defense-in-depth architectural control.
+- `monitoring_indicator`: Quantifiable simulation metric used to monitor the risk.
+
+
 

@@ -49,5 +49,143 @@
     "interest_rate_calculator": "PUBLIC",
     "batch_analytics_report": "INTERNAL",
     "customer_support_faq": "PUBLIC"
+  },
+  "feature_rules": {
+    "field_name_patterns": {
+      "RESTRICTED": [
+        "*password*", "*secret*", "*token*", "*key*", "*mfa*", "*pin*",
+        "*kyc*", "*ssn*", "*national_id*", "*credential*", "*biometric*",
+        "*auth_code*", "*seed*", "*private_key*"
+      ],
+      "CONFIDENTIAL": [
+        "*customer_id*", "*account_id*", "*tx_id*", "*balance*", "*amount*",
+        "*credit_score*", "*risk_score*", "*loan*", "*payment*", "*salary*",
+        "*source_account*", "*target_account*", "*tax_id*"
+      ],
+      "INTERNAL": [
+        "*audit*", "*log*", "*metric*", "*latency*", "*trace*", "*internal*",
+        "*batch*", "*worker*", "*arrival_rate*", "*utilization*", "*node_id*",
+        "*instance_id*", "*queue_depth*", "*event_counter*"
+      ],
+      "PUBLIC": [
+        "*faq*", "*branch*", "*locator*", "*exchange_rate*", "*forex*",
+        "*rate*", "*public*", "*announcement*", "*atm*", "*currency*",
+        "*terms*", "*general_info*"
+      ]
+    },
+    "keywords": {
+      "RESTRICTED": [
+        "kyc", "identity", "credential", "auth", "secret", "password",
+        "pin", "passcode", "passport", "national_id", "biometric"
+      ],
+      "CONFIDENTIAL": [
+        "transfer", "balance", "transaction", "payment", "loan",
+        "credit", "account", "deposit", "ledger", "statement"
+      ],
+      "INTERNAL": [
+        "audit", "metric", "report", "analytics", "batch", "health",
+        "monitoring", "telemetry", "diagnostic", "infrastructure"
+      ],
+      "PUBLIC": [
+        "locator", "atm", "branch", "exchange", "rate", "faq",
+        "calculator", "help", "terms", "forex", "contact"
+      ]
+    }
+  },
+  "rbac_matrix": {
+    "roles": {
+      "CUSTOMER": {
+        "allowed_operations": [
+          "account_balance_inquiry",
+          "transaction_history",
+          "fund_transfer",
+          "exchange_rate_lookup",
+          "branch_atm_locator",
+          "interest_rate_calculator",
+          "customer_support_faq"
+        ],
+        "description": "Standard retail customer interacting via mobile app or web portal."
+      },
+      "BANK_OPERATOR": {
+        "allowed_operations": [
+          "account_balance_inquiry",
+          "transaction_history",
+          "kyc_verification",
+          "loan_application",
+          "credit_risk_evaluation",
+          "customer_support_faq",
+          "branch_atm_locator"
+        ],
+        "description": "Internal banking staff handling KYC verification, loan processing, and customer support."
+      },
+      "SECURITY_AUDITOR": {
+        "allowed_operations": [
+          "batch_analytics_report",
+          "audit_logs",
+          "security_events",
+          "monitoring_query",
+          "exchange_rate_lookup"
+        ],
+        "description": "Compliance and security audit officer inspecting audit trails and access telemetry."
+      },
+      "ADMIN": {
+        "allowed_operations": [
+          "account_balance_inquiry",
+          "fund_transfer",
+          "kyc_verification",
+          "loan_application",
+          "credit_risk_evaluation",
+          "transaction_history",
+          "exchange_rate_lookup",
+          "branch_atm_locator",
+          "interest_rate_calculator",
+          "batch_analytics_report",
+          "customer_support_faq",
+          "audit_logs",
+          "security_events",
+          "system_configuration",
+          "key_rotation"
+        ],
+        "description": "Infrastructure and systems administrator with elevated configuration privileges."
+      }
+    }
+  },
+  "mfa_policy": {
+    "enforced_services": [
+      "fund_transfer",
+      "kyc_verification",
+      "loan_application",
+      "key_rotation",
+      "system_configuration"
+    ],
+    "default_success_rate": 0.98
+  },
+  "authentication_policy": {
+    "default_success_rate": 0.99,
+    "session_timeout_seconds": 900
+  },
+  "encryption_policy": {
+    "data_at_rest": {
+      "enabled": true,
+      "algorithm": "AES-256-GCM",
+      "overhead_ms": 0.8,
+      "simulated_failure_rate": 0.001
+    },
+    "data_in_transit": {
+      "enabled": true,
+      "algorithm": "TLS-1.3",
+      "overhead_ms": 0.4,
+      "simulated_failure_rate": 0.0005
+    }
+  },
+  "routing_policy": {
+    "tier_destination_mapping": {
+      "RESTRICTED": "PRIVATE",
+      "CONFIDENTIAL": "PRIVATE",
+      "INTERNAL": "PUBLIC",
+      "PUBLIC": "PUBLIC"
+    },
+    "safe_fallback_destination": "PRIVATE",
+    "strict_compliance_mode": true
   }
 }

@@ -1,6 +1,6 @@
 # System Architecture Documentation
 
-**Current Milestone**: Stage 5 — Dynamic Load Balancing & Public Cloud Autoscaling (COMPLETE)  
+**Current Milestone**: Stage 6 — Security & Data-Classification Module (COMPLETE)  
 **Project**: Digital Banking System — Secure Hybrid Cloud Migration Simulation  
 
 ---
@@ -167,5 +167,96 @@
    - **Scale-In Trigger**: When utilization $\le 35.0\%$ for 2 consecutive monitoring intervals and cooldown has elapsed, marks up to 2 instances as `DRAINING` (`scale_in_step = 2`), down to `min_instances = 2`.
    - **Hysteresis & Flapping Protection**: Cooldown window (1.5s) prevents rapid alternation between scale-out and scale-in.
    - **Telemetry Tracking**: Every scaling decision is logged to `scaling_events.jsonl` with timestamps, triggers, instance transitions, queue backlogs, and utilization metrics.
+
+---
+
+## 8. Stage 6 — Security & Data Classification Architecture
+
+```
+                    USERS / CLIENT APPS
+                            │
+                            ▼
+               [ API GATEWAY / WAF PERIMETER ]
+               (Gateway Delay: 1.5 ms, IP Filtering)
+                            │
+                            ▼
+              [ AUTHENTICATOR & MFA COORDINATOR ]
+              • Session Validation (0.4 ms)
+              • MFA Challenge for Sensitive Ops (0.6 ms)
+                            │
+                            ▼
+                     [ RBAC AUTHORIZER ]
+              (Role Matrix: CUSTOMER, BANK_OPERATOR,
+               SECURITY_AUDITOR, ADMIN)
+                            │
+                            ▼
+              [ TWO-STAGE DATA CLASSIFIER ]
+              • Stage 1: Deep Credential Taint Scan
+              • Stage 2: Service Contract Catalog & Rules
+              • Output: RESTRICTED / CONFIDENTIAL /
+                        INTERNAL / PUBLIC
+                            │
+                            ▼
+              [ COMPLIANCE ROUTING & INTERCEPTOR ]
+              • RESTRICTED / CONFIDENTIAL ──► PRIVATE CLOUD
+              • PUBLIC / INTERNAL        ──► PUBLIC CLOUD
+              • R2 Interception: Blocks Sensitive -> Public
+                            │
+            ┌───────────────┴───────────────┐
+            ▼                               ▼
+     PRIVATE CLOUD                    PUBLIC CLOUD
+     (Protected Enclave)              (Elastic Zone)
+     • 48 Compute Cores               • Elastic 2–20 Nodes
+     • Core Banking DB (64 conn)      • Public Microservices
+     • AES-256-GCM At Rest            • TLS 1.3 In Transit
+            │                               │
+            └───────────────┬───────────────┘
+                            │
+                            ▼
+             [ SECURITY VIOLATION DETECTOR ]
+             • Monitors Governance Risks R1–R6
+             • R1: Unauthorized Internal Access
+             • R2: Sensitive Data to Public Cloud
+             • R4: Key / Crypto Failure
+             • R6: Cross-Border Residency Breach
+                            │
+                            ▼
+             [ IMMUTABLE SECURITY AUDIT LOG ]
+             (`results/raw/security/audit_log.jsonl`)
+```
+
+### Component Details
+1. **Two-Stage Rule-Based Data Classifier (`DataClassifier`)**:
+   - **Stage 1 (Taint Scanning)**: Scans payload fields and text for high-sensitivity credential patterns (`*password*`, `*secret*`, `*key*`, `*token*`, `*kyc*`). Any positive match immediately escalates the request to `RESTRICTED`.
+   - **Stage 2 (Service Catalog Mapping)**: Maps banking operations to sensitivity tiers based on regulatory guidelines:
+     - `RESTRICTED`: `fund_transfer`, `kyc_verification`
+     - `CONFIDENTIAL`: `account_balance_inquiry`, `loan_application`, `credit_risk_evaluation`, `transaction_history`
+     - `INTERNAL`: `batch_analytics_report`
+     - `PUBLIC`: `branch_atm_locator`, `exchange_rate_lookup`, `interest_rate_calculator`, `customer_support_faq`
+   - **Zero-Trust Fallback**: Unrecognized schemas default to `RESTRICTED` and route to the protected Private tier.
+   - **Latency Overhead**: Computes inspection overhead ($0.25$ to $0.55$ ms, mean $0.38$ ms).
+
+2. **Access Control: Authentication & MFA (`Authenticator`, `MFACoordinator`)**:
+   - Generates simulated session tokens with configurable session expiry ($900$s).
+   - Enforces second-factor challenge-response for high-impact financial and KYC operations (`fund_transfer`, `kyc_verification`, `loan_application`).
+   - Rejections trigger an `R1` security event.
+
+3. **Role-Based Access Control (`RBACAuthorizer`)**:
+   - Enforces a four-tier enterprise banking role matrix (`CUSTOMER`, `BANK_OPERATOR`, `SECURITY_AUDITOR`, `ADMIN`).
+   - Denies non-privileged roles from invoking internal underwriting or administrative functions.
+
+4. **Cryptographic Overhead Model (`EncryptionManager`)**:
+   - Models dual cryptographic envelopes: Data-at-Rest (`AES-256-GCM`, $\sim 0.8$ ms) and Data-in-Transit (`TLS 1.3`, $\sim 0.4$ ms).
+   - Applied selectively: `RESTRICTED` and `CONFIDENTIAL` require both At-Rest and In-Transit encryption; `INTERNAL` and `PUBLIC` enforce In-Transit protection.
+
+5. **Security Violation Detection (`SecurityViolationDetector`)**:
+   - Evaluates simulation events against the 6-risk register (`R1` through `R6`).
+   - Automatically detects and intercepts attempted sensitive-data leakage to public clouds (`R2`), re-routing payloads to the private cloud to maintain a zero-leakage invariant.
+
+6. **Immutable Structured Audit Logging (`SecurityAuditLogger`)**:
+   - Records all access attempts, classification decisions, routing hops, cryptographic events, and security violations into `results/raw/security/audit_log.jsonl`.
+   - Guaranteed deterministic across identical seeds (`seed=42`).
+
+> **ACADEMIC DISCLAIMER**: Stage 6 security mechanisms are simulation abstractions for academic evaluation and are not production banking security controls.
 
 

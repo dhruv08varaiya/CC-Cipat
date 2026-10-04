@@ -188,4 +188,67 @@ All notable changes to the **Digital Banking System — Secure Hybrid Cloud Migr
   - Autoscaling Hybrid: Throughput = 1,322.28 RPS (+7.82%), Avg Latency = 61.38 ms (-39.31%), P95 = 343.10 ms (-38.18%), Public Latency = 153.91 ms (-48.25%), Max Queue = 234 (-46.21%), Avg Queue = 30.29 (-64.36%).
   - Scaling Telemetry: 3 events (1 scale-out to 6 instances, 2 scale-ins back to 2 instances), 0 dropped requests, 100.00% availability.
 
+## [Stage 6: Security & Data-Classification Module] - 2026-10-04
+
+### Added
+- Core security modules in `src/security/`:
+  - `risk_register.py`: `RiskRegister` & `SecurityRisk` dataclass enforcing mathematical risk scoring ($\text{Risk Score} = \text{Likelihood} \times \text{Impact}$) for governance risks R1–R6.
+  - `data_classifier.py`: Two-Stage Automated Data Classifier (Stage 1: Credential/Secret Taint Scan, Stage 2: Service Contract Mapping + Field Pattern Fallback) classifying requests into `RESTRICTED`, `CONFIDENTIAL`, `INTERNAL`, `PUBLIC` with explainable matched rules and inspection latencies.
+  - `authentication.py`: `Authenticator` & `AuthSession` tracking synthetic credential validation, session lifecycles, and authentication failure rate telemetry.
+  - `mfa.py`: `MFACoordinator` simulating second-factor step-up challenges for high-risk banking operations (`wire_transfer`, `bulk_transfer`, `password_change`, `kyc_upload`).
+  - `rbac.py`: `RBACAuthorizer` enforcing 4-tier banking role matrix (`CUSTOMER`, `BANK_OPERATOR`, `SECURITY_AUDITOR`, `ADMIN`) across 20+ fine-grained banking operations.
+  - `encryption.py`: `EncryptionManager` simulating cryptographic latency models for AES-256-GCM storage encryption (0.8 ms) and TLS 1.3 interconnect encryption (0.4 ms) with failure simulation.
+  - `security_events.py`: `SecurityViolationDetector` tracking simulation governance risks R1–R6 and intercepting 100% of attempted sensitive-to-public routing probes (R2).
+  - `security_audit.py`: `SecurityAuditLogger` generating structured, immutable JSON Lines security event records.
+- Configuration artifacts:
+  - `config/security_risk_register.json`: Formal cloud governance risk register documenting risks R1–R6 with categories, descriptions, mitigations, and monitoring indicators.
+  - `config/security_rules.json`: Enhanced security configuration with service classification contracts, field regex patterns, sensitive keywords, RBAC permissions matrix, MFA required services, and cryptographic parameters.
+- Experiment E7 Harness & Visualization:
+  - `src/experiments/e7_security_classification.py`: Experiment E7 benchmark evaluating 5,100 requests (5,000 W1 baseline + 100 probe requests) measuring classification accuracy, routing compliance, access control telemetry, cryptographic overhead, and audit completeness.
+  - `run_e7_experiment.py`: Root CLI runner for Experiment E7.
+  - `src/visualization/e7_plots.py`: Generates 8 high-resolution publication charts in `results/figures/E7/`:
+    1. `1_classification_distribution.png` (Ground truth vs predicted class balance)
+    2. `2_confusion_matrix.png` (4x4 classification confusion matrix)
+    3. `3_classification_metrics_by_class.png` (Precision, Recall, F1-score across all 4 tiers)
+    4. `4_classification_latency_distribution.png` (Inspection latency distribution: mean 0.377 ms)
+    5. `5_routing_destination_by_class.png` (Tier destination compliance)
+    6. `6_routing_violations_detected.png` (100% interception of sensitive public breach attempts)
+    7. `7_access_control_outcomes.png` (Auth, MFA, and RBAC success/denial telemetry)
+    8. `8_security_events_by_severity.png` (Governance events R1–R6 by severity level)
+- Automated tests:
+  - `tests/test_security_module.py`: 17 comprehensive unit/regression tests covering deterministic classification, safe fallback on unknown data, sensitive routing compliance, unauthorized routing blocking, auth lifecycle, MFA enforcement, RBAC denial, security event logging, audit trail schema, cryptographic overhead, risk register scoring, and seed reproducibility.
+- Generated Raw & Processed Artifacts:
+  - `results/raw/security/audit_log.jsonl`: 26,953 audit events generated during E7.
+  - `results/raw/E7/e7_requests.jsonl`: Request-level classification, routing, and access control trace.
+  - `results/raw/E7/security_events.jsonl`: 190 governance violation events logged.
+  - `results/processed/E7/e7_summary.json` & `e7_report.md`: Machine-readable and human-readable benchmark summaries.
+
+### Changed
+- `docs/ARCHITECTURE.md`: Milestone updated to Stage 6; added Section 8 Security Architecture detailing defense-in-depth model.
+- `docs/PROJECT_DOCUMENTATION.md`: Version updated to 1.4.0; added Section 11 Security Model, Section 14 E7 benchmark table, and updated Section 15 & 16.
+- `docs/IMPLEMENTATION_STATUS.md`: Marked Stage 6 as COMPLETE.
+- `docs/DECISIONS.md`: Logged DEC-009 (Stage 6 Security & Data Classification Architecture).
+- `docs/EXPERIMENTS.md`: Added E7 detailed empirical section and updated experiment tracker.
+- `docs/DATA_DICTIONARY.md`: Added schemas for security audit log, E7 requests, and risk register.
+- `docs/RUNBOOK.md`: Added operational guidelines for running Experiment E7.
+- `README.md`: Updated quick start table and added Section 12 E7 runner.
+
+### Tests
+- Ran 46 unit tests across all 6 test suites (`test_project_structure.py`, `test_synthetic_data.py`, `test_on_premise_sim.py`, `test_hybrid_cloud_sim.py`, `test_autoscaling.py`, `test_security_module.py`).
+- 46 passed in 0.251s (Exit code 0).
+
+### Output
+- Experiment E7 Results (`results/raw/security/`, `results/raw/E7/`, `results/processed/E7/`):
+  - Classification: Overall Accuracy = **99.49%**, Macro F1 = **0.9962**, Mean Latency = **0.377 ms**.
+    - RESTRICTED: F1 = 0.9902 (Recall = 100.0%, 0 false negatives).
+    - CONFIDENTIAL: F1 = 0.9945 (Precision = 100.0%, 2,363 TP).
+    - INTERNAL & PUBLIC: F1 = 1.0000 (100.0% Precision & Recall).
+  - Compliance Routing: 3,699 routed to Private, 1,401 routed to Public.
+  - Violation Interception: 25/25 injected public routing violation probes intercepted (100.0% blocked). Zero undetected sensitive data leaks.
+  - Access Control Telemetry: Auth success = 98.90% (56 blocked); MFA success = 96.35% (53 blocked); RBAC authorization = 98.41% (81 blocked).
+  - Cryptographic Simulation: Mean overhead = 0.975 ms/req (3,679 at-rest encrypted, 5,079 in-transit encrypted, 21 simulated failures detected).
+  - Governance Events: 190 total events logged (R1: 134, R2: 25, R4: 21, R6: 10; Critical: 35, High: 99, Medium: 56).
+  - Reproducibility: 100% bit-for-bit identical across repeated runs with `seed=42`.
+
+
 

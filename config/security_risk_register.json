@@ -1,0 +1,93 @@
+{
+  "project": "Digital Banking System — Secure Hybrid Cloud Migration Simulation",
+  "version": "1.0.0",
+  "disclaimer": "This risk register is an academic simulation artifact for evaluating cloud migration governance and security controls. It does not represent a real commercial banking risk assessment or claim production compliance.",
+  "scoring_model": {
+    "formula": "Risk Score = Likelihood × Impact",
+    "scale": {
+      "likelihood": "1 (Rare) to 5 (Almost Certain)",
+      "impact": "1 (Negligible) to 5 (Catastrophic)",
+      "score_range": "1 to 25"
+    },
+    "classification": {
+      "LOW": "1 - 5",
+      "MEDIUM": "6 - 11",
+      "HIGH": "12 - 19",
+      "CRITICAL": "20 - 25"
+    }
+  },
+  "risks": [
+    {
+      "risk_id": "R1",
+      "category": "ACCESS_CONTROL",
+      "title": "Unauthorized internal access to core banking subsystems",
+      "description": "An internal actor or compromised credential attempts to execute unauthorized privileged operations (e.g. KYC overrides, ledger modifications, unauthenticated fund transfers) bypassing role constraints.",
+      "likelihood": 2,
+      "impact": 5,
+      "risk_score": 10,
+      "risk_level": "MEDIUM",
+      "mitigation": "Enforce strict Role-Based Access Control (RBAC), multi-factor authentication (MFA) for sensitive actions, and continuous session validation.",
+      "monitoring_indicator": "Rate of unauthorized access rejection events (RBAC_DENIED / MFA_FAILED)."
+    },
+    {
+      "risk_id": "R2",
+      "category": "DATA_GOVERNANCE",
+      "title": "Sensitive data routed to public cloud tier",
+      "description": "RESTRICTED (PII, credentials, KYC) or CONFIDENTIAL (transactions, accounts) data inadvertently or erroneously routed to the public cloud elastic zone, causing regulatory violation.",
+      "likelihood": 2,
+      "impact": 5,
+      "risk_score": 10,
+      "risk_level": "MEDIUM",
+      "mitigation": "Automated deterministic data classification at the API Gateway with strict policy precedence and automated violation interception (R2 alert).",
+      "monitoring_indicator": "Sensitive-to-public routing violation count (zero tolerance: must be 0 in clean runs)."
+    },
+    {
+      "risk_id": "R3",
+      "category": "VENDOR_GOVERNANCE",
+      "title": "Cloud provider dependency and multi-tenant control risk",
+      "description": "Over-reliance on public cloud vendor hypervisor, unannounced API deprecations, multi-tenant side-channel risks, or lack of direct administrative oversight.",
+      "likelihood": 3,
+      "impact": 3,
+      "risk_score": 9,
+      "risk_level": "MEDIUM",
+      "mitigation": "Confine core banking databases and confidential transactional logic to the private cloud tier; treat public cloud strictly as an elastic processing zone for non-sensitive workloads.",
+      "monitoring_indicator": "Percentage of critical banking transactions decoupled from public cloud infrastructure."
+    },
+    {
+      "risk_id": "R4",
+      "category": "CRYPTOGRAPHY",
+      "title": "Key-management and cryptographic lifecycle failure",
+      "description": "Failure in cryptographic key rotation, corrupted ciphertexts, simulated key store unavailability, or transmission of unencrypted payloads across the hybrid interconnect.",
+      "likelihood": 1,
+      "impact": 5,
+      "risk_score": 5,
+      "risk_level": "LOW",
+      "mitigation": "Simulated envelope encryption (AES-256-GCM at rest, TLS 1.3 in transit) with mandatory interconnect cryptographic overhead and key validity checks.",
+      "monitoring_indicator": "Cryptographic failure rate and interconnect encryption verification status."
+    },
+    {
+      "risk_id": "R5",
+      "category": "AVAILABILITY",
+      "title": "Public cloud service outage or traffic exhaustion",
+      "description": "Sudden burst traffic, DDoS attacks, or public cloud zone outages causing severe queue build-up and latency inflation.",
+      "likelihood": 3,
+      "impact": 4,
+      "risk_score": 12,
+      "risk_level": "HIGH",
+      "mitigation": "Automated public cloud autoscaling (Stage 5), graceful connection draining, and failover isolation to protect private cloud operations.",
+      "monitoring_indicator": "P95 response time, public queue depth, and drop rate under peak and burst workloads."
+    },
+    {
+      "risk_id": "R6",
+      "category": "COMPLIANCE",
+      "title": "Data residency and cross-border governance violation",
+      "description": "Transferring sovereign citizen banking records (RESTRICTED) across external regulatory boundaries or storing PII in non-compliant public availability zones.",
+      "likelihood": 1,
+      "impact": 5,
+      "risk_score": 5,
+      "risk_level": "LOW",
+      "mitigation": "Geographic boundary policy enforcement keeping all customer identity and account balance ledgers pinned to on-premise/private cloud storage.",
+      "monitoring_indicator": "Data residency audit log checks and cross-tier data export alerts."
+    }
+  ]
+}

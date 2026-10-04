@@ -1,9 +1,20 @@
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: '/api',
-  timeout: 60000,
-});
+// Native fetch wrapper — zero dependency
+const request = async <T>(path: string, options?: RequestInit): Promise<T> => {
+  const res = await fetch(`/api${path}`, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  });
+  if (!res.ok) {
+    const errorText = await res.text();
+    try {
+      const errJson = JSON.parse(errorText);
+      throw new Error(errJson.detail || res.statusText);
+    } catch (e: any) {
+      throw new Error(e.message || errorText || res.statusText);
+    }
+  }
+  return res.json();
+};
 
 export interface WorkloadItem {
   id: string;
@@ -51,75 +62,29 @@ export interface SimulationResult {
   };
 }
 
-export const fetchWorkloads = async (): Promise<WorkloadItem[]> => {
-  const res = await api.get<WorkloadItem[]>('/simulation/workloads');
-  return res.data;
-};
-
-export const fetchConfig = async (): Promise<any> => {
-  const res = await api.get('/simulation/config');
-  return res.data;
-};
-
-export const runSimulation = async (payload: {
+export const fetchWorkloads = () => request<WorkloadItem[]>('/simulation/workloads');
+export const fetchConfig = () => request<any>('/simulation/config');
+export const runSimulation = (payload: {
   architecture: string;
   workload_id: string;
   seed?: number;
   max_events?: number;
   autoscaling_enabled?: boolean;
-}): Promise<SimulationResult> => {
-  const res = await api.post<SimulationResult>('/simulation/run', payload);
-  return res.data;
-};
+}) => request<SimulationResult>('/simulation/run', { method: 'POST', body: JSON.stringify(payload) });
 
-export const fetchExperimentsList = async () => {
-  const res = await api.get('/experiments/list');
-  return res.data;
-};
+export const fetchExperimentsList = () => request<any[]>('/experiments/list');
+export const fetchExperimentSummary = (expId: string) => request<any>(`/experiments/summary/${expId}`);
+export const runE4Experiment = (payload: { seed?: number; max_events?: number }) =>
+  request<any>('/experiments/e4/run', { method: 'POST', body: JSON.stringify(payload) });
+export const runE7Experiment = (payload: { seed?: number; max_events?: number }) =>
+  request<any>('/experiments/e7/run', { method: 'POST', body: JSON.stringify(payload) });
 
-export const fetchExperimentSummary = async (expId: string) => {
-  const res = await api.get(`/experiments/summary/${expId}`);
-  return res.data;
-};
+export const fetchDatasetsList = () => request<any[]>('/datasets/list');
+export const fetchDatasetStatistics = () => request<any>('/datasets/statistics');
+export const fetchDatasetPreview = (tableName: string, page = 1, pageSize = 20) =>
+  request<any>(`/datasets/preview/${tableName}?page=${page}&page_size=${pageSize}`);
 
-export const runE4Experiment = async (payload: { seed?: number; max_events?: number }) => {
-  const res = await api.post('/experiments/e4/run', payload);
-  return res.data;
-};
-
-export const runE7Experiment = async (payload: { seed?: number; max_events?: number }) => {
-  const res = await api.post('/experiments/e7/run', payload);
-  return res.data;
-};
-
-export const fetchDatasetsList = async () => {
-  const res = await api.get('/datasets/list');
-  return res.data;
-};
-
-export const fetchDatasetStatistics = async () => {
-  const res = await api.get('/datasets/statistics');
-  return res.data;
-};
-
-export const fetchDatasetPreview = async (tableName: string, page = 1, pageSize = 20) => {
-  const res = await api.get(`/datasets/preview/${tableName}?page=${page}&page_size=${pageSize}`);
-  return res.data;
-};
-
-export const fetchSecurityRules = async () => {
-  const res = await api.get('/security/rules');
-  return res.data;
-};
-
-export const fetchRiskRegister = async () => {
-  const res = await api.get('/security/risk-register');
-  return res.data;
-};
-
-export const classifyPayload = async (serviceType: string, payload: Record<string, any>) => {
-  const res = await api.post('/security/classify', { service_type: serviceType, payload });
-  return res.data;
-};
-
-export default api;
+export const fetchSecurityRules = () => request<any>('/security/rules');
+export const fetchRiskRegister = () => request<any>('/security/risk-register');
+export const classifyPayload = (serviceType: string, payload: Record<string, any>) =>
+  request<any>('/security/classify', { method: 'POST', body: JSON.stringify({ service_type: serviceType, payload }) });

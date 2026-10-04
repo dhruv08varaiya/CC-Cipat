@@ -6,7 +6,8 @@ import {
   ShieldCheck, 
   Database, 
   Layers,
-  Zap
+  Zap,
+  Radio
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -16,12 +17,13 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   const tabs = [
-    { id: 'overview', label: 'Architecture', icon: Layers },
-    { id: 'lifecycle', label: 'Live Action Inspector', icon: Zap },
+    { id: 'digital_twin', label: 'Living Digital Twin', icon: Radio },
+    { id: 'lifecycle', label: 'Action Inspector', icon: Zap },
     { id: 'simulation', label: 'Discrete Sim', icon: Activity },
     { id: 'experiments', label: 'Experiments Lab', icon: FlaskConical },
     { id: 'security', label: 'Security & Compliance', icon: ShieldCheck },
     { id: 'data', label: 'Data Explorer', icon: Database },
+    { id: 'overview', label: 'Architecture', icon: Layers },
   ];
 
   return (

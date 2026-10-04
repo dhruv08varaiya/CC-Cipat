@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Navbar } from './components/Navbar';
+import { DigitalTwinTab } from './components/DigitalTwinTab';
 import { OverviewTab } from './components/OverviewTab';
 import { LifecycleInspectorTab } from './components/LifecycleInspectorTab';
 import { SimulationTab } from './components/SimulationTab';
@@ -8,13 +9,14 @@ import { SecurityTab } from './components/SecurityTab';
 import { DataExplorerTab } from './components/DataExplorerTab';
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('lifecycle');
+  const [activeTab, setActiveTab] = useState('digital_twin');
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col selection:bg-sky-500 selection:text-white">
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {activeTab === 'digital_twin' && <DigitalTwinTab />}
         {activeTab === 'overview' && <OverviewTab />}
         {activeTab === 'lifecycle' && <LifecycleInspectorTab />}
         {activeTab === 'simulation' && <SimulationTab />}

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from pathlib import Path
 import json
 from app.services.sim_runner import SimRunnerService
@@ -16,7 +16,7 @@ class ExperimentRequest(BaseModel):
 
 @router.get("/list")
 def list_experiments():
-    """List completed and planned experiments with summaries."""
+    """List completed experiments E1 through E8."""
     return [
         {
             "id": "E1",
@@ -43,40 +43,56 @@ def list_experiments():
             "description": "Evaluates horizontal autoscaler elastic response, latency recovery, and queue dampening."
         },
         {
+            "id": "E5",
+            "name": "Failure Resilience & Chaos Injection (W5)",
+            "status": "COMPLETED",
+            "description": "Evaluates fault tolerance under sudden 50% node outage, comparing On-Prem vs Hybrid."
+        },
+        {
+            "id": "E6",
+            "name": "Disaster Recovery & Node Restoration (W6)",
+            "status": "COMPLETED",
+            "description": "Measures quantitative MTTR and RTO recovery times during automated node restoration."
+        },
+        {
             "id": "E7",
             "name": "Security Classification & Compliance Benchmark",
             "status": "COMPLETED",
             "description": "Zero-trust 4-tier data classification, zero data leakage routing, MFA/RBAC evaluation."
         },
         {
-            "id": "E5",
-            "name": "Failure Resilience & Chaos Injection (W5)",
-            "status": "PLANNED",
-            "description": "Stage 7: 50% node drop failure tolerance and queue stability."
-        },
-        {
-            "id": "E6",
-            "name": "Disaster Recovery & Node Restoration (W6)",
-            "status": "PLANNED",
-            "description": "Stage 7: MTTR and automated replica failover."
+            "id": "E8",
+            "name": "Financial TCO Modeling & Cost-Performance Pareto",
+            "status": "COMPLETED",
+            "description": "3-Year TCO breakdown ($814K On-Prem vs $662K Hybrid, -18.7% savings) and Pareto frontier."
         }
     ]
 
 @router.get("/summary/{exp_id}")
 def get_experiment_summary(exp_id: str):
-    """Fetch pre-computed summary JSON for experiment E1-E4, E7."""
+    """Fetch pre-computed or live summary JSON for experiment E1-E8."""
     exp_id = exp_id.upper()
     if exp_id in ("E1", "E2", "E3"):
         summary_file = COMPARISON_DIR / exp_id / "comparison_summary.json"
-    elif exp_id == "E4":
-        summary_file = PROCESSED_DIR / "E4" / "comparison_summary.json"
-    elif exp_id == "E7":
-        summary_file = PROCESSED_DIR / "E7" / "e7_summary.json"
+    elif exp_id in ("E4", "E5", "E6", "E7", "E8"):
+        # Check either eX_summary.json or comparison_summary.json
+        p_dir = PROCESSED_DIR / exp_id
+        summary_file = p_dir / f"{exp_id.lower()}_summary.json"
+        if not summary_file.exists():
+            summary_file = p_dir / "comparison_summary.json"
     else:
         raise HTTPException(status_code=404, detail=f"Summary for experiment {exp_id} not found.")
 
     if not summary_file.exists():
-        raise HTTPException(status_code=404, detail=f"Summary file not found: {summary_file}")
+        # Generate on the fly if not cached
+        if exp_id == "E5":
+            return SimRunnerService.run_e5_experiment()
+        elif exp_id == "E6":
+            return SimRunnerService.run_e6_experiment()
+        elif exp_id == "E8":
+            return SimRunnerService.run_e8_experiment()
+        else:
+            raise HTTPException(status_code=404, detail=f"Summary file not found: {summary_file}")
 
     with open(summary_file, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -90,11 +106,47 @@ def run_e4(req: ExperimentRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/e5/run")
+def run_e5(req: ExperimentRequest):
+    """Execute live E5 failure resilience experiment."""
+    try:
+        results = SimRunnerService.run_e5_experiment(seed=req.seed, max_events=req.max_events)
+        return {"status": "success", "results": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/e6/run")
+def run_e6(req: ExperimentRequest):
+    """Execute live E6 disaster recovery experiment."""
+    try:
+        results = SimRunnerService.run_e6_experiment(seed=req.seed, max_events=req.max_events)
+        return {"status": "success", "results": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/e7/run")
 def run_e7(req: ExperimentRequest):
     """Execute live E7 security classification benchmark."""
     try:
         results = SimRunnerService.run_e7_experiment(seed=req.seed, max_events=req.max_events)
+        return {"status": "success", "results": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/e8/run")
+def run_e8():
+    """Execute E8 financial TCO and Pareto analysis."""
+    try:
+        results = SimRunnerService.run_e8_experiment()
+        return {"status": "success", "results": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/run-all")
+def run_all_benchmarks(req: ExperimentRequest):
+    """Run all benchmarks E1 through E8 in unified pass."""
+    try:
+        results = SimRunnerService.run_all_benchmarks(seed=req.seed, event_limit=req.max_events)
         return {"status": "success", "results": results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

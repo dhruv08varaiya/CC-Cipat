@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 from app.services.sim_runner import SimRunnerService
+from app.services.lifecycle_service import TransactionLifecycleService
 
 router = APIRouter()
 
@@ -11,6 +12,13 @@ class SimulationRunRequest(BaseModel):
     seed: int = 42
     max_events: Optional[int] = 1000
     autoscaling_enabled: Optional[bool] = None
+
+class TraceTransactionRequest(BaseModel):
+    service_type: str = "fund_transfer"
+    user_role: str = "CUSTOMER"
+    payload: Optional[Dict[str, Any]] = None
+    chaos_node_failure: bool = False
+    chaos_network_spike: bool = False
 
 @router.get("/workloads")
 def get_workloads():
@@ -39,5 +47,22 @@ def run_simulation(req: SimulationRunRequest):
             "workload_id": req.workload_id,
             "results": results
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/trace-transaction")
+def trace_transaction(req: TraceTransactionRequest):
+    """
+    Step-by-step interactive lifecycle trace of a single transaction across all 8 architectural stages.
+    """
+    try:
+        trace_data = TransactionLifecycleService.trace_transaction(
+            service_type=req.service_type,
+            user_role=req.user_role,
+            payload=req.payload,
+            chaos_node_failure=req.chaos_node_failure,
+            chaos_network_spike=req.chaos_network_spike
+        )
+        return {"status": "success", "trace": trace_data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

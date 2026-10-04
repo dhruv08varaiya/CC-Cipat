@@ -5,7 +5,8 @@ import {
   FlaskConical, 
   ShieldCheck, 
   Database, 
-  Layers 
+  Layers,
+  Zap
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -15,8 +16,9 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   const tabs = [
-    { id: 'overview', label: 'Overview & Architecture', icon: Layers },
-    { id: 'simulation', label: 'Live Simulation', icon: Activity },
+    { id: 'overview', label: 'Architecture', icon: Layers },
+    { id: 'lifecycle', label: 'Live Action Inspector', icon: Zap },
+    { id: 'simulation', label: 'Discrete Sim', icon: Activity },
     { id: 'experiments', label: 'Experiments Lab', icon: FlaskConical },
     { id: 'security', label: 'Security & Compliance', icon: ShieldCheck },
     { id: 'data', label: 'Data Explorer', icon: Database },
@@ -33,11 +35,11 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
             <div>
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-lg text-white tracking-tight">CC-CIPAT</span>
-                <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-sky-500/10 text-sky-400 border border-sky-500/20">
-                  v2.0 Hybrid Cloud
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  Real-Time Twin
                 </span>
               </div>
-              <p className="text-xs text-slate-400">Digital Banking Migration & Security Simulation</p>
+              <p className="text-xs text-slate-400">Secure Hybrid Cloud Banking Simulation</p>
             </div>
           </div>
 
@@ -49,13 +51,13 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
                     isActive
                       ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
                       : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-3.5 w-3.5" />
                   <span>{tab.label}</span>
                 </button>
               );

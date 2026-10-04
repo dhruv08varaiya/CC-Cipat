@@ -62,6 +62,28 @@ export interface SimulationResult {
   };
 }
 
+export interface LifecycleStageItem {
+  stage_id: number;
+  name: string;
+  status: 'PENDING' | 'ACTIVE' | 'SUCCESS' | 'BLOCKED' | 'WARNING';
+  timestamp_offset_ms: number;
+  duration_ms: number;
+  details: Record<string, any>;
+  payload_snapshot: any;
+  description: string;
+}
+
+export interface TraceTransactionResponse {
+  status: string;
+  trace: {
+    transaction_id: string;
+    service_type: string;
+    user_role: string;
+    total_latency_ms: number;
+    stages: LifecycleStageItem[];
+  };
+}
+
 export const fetchWorkloads = () => request<WorkloadItem[]>('/simulation/workloads');
 export const fetchConfig = () => request<any>('/simulation/config');
 export const runSimulation = (payload: {
@@ -72,12 +94,27 @@ export const runSimulation = (payload: {
   autoscaling_enabled?: boolean;
 }) => request<SimulationResult>('/simulation/run', { method: 'POST', body: JSON.stringify(payload) });
 
+export const traceTransaction = (payload: {
+  service_type: string;
+  user_role?: string;
+  payload?: Record<string, any>;
+  chaos_node_failure?: boolean;
+  chaos_network_spike?: boolean;
+}) => request<TraceTransactionResponse>('/simulation/trace-transaction', { method: 'POST', body: JSON.stringify(payload) });
+
 export const fetchExperimentsList = () => request<any[]>('/experiments/list');
 export const fetchExperimentSummary = (expId: string) => request<any>(`/experiments/summary/${expId}`);
 export const runE4Experiment = (payload: { seed?: number; max_events?: number }) =>
   request<any>('/experiments/e4/run', { method: 'POST', body: JSON.stringify(payload) });
+export const runE5Experiment = (payload: { seed?: number; max_events?: number }) =>
+  request<any>('/experiments/e5/run', { method: 'POST', body: JSON.stringify(payload) });
+export const runE6Experiment = (payload: { seed?: number; max_events?: number }) =>
+  request<any>('/experiments/e6/run', { method: 'POST', body: JSON.stringify(payload) });
 export const runE7Experiment = (payload: { seed?: number; max_events?: number }) =>
   request<any>('/experiments/e7/run', { method: 'POST', body: JSON.stringify(payload) });
+export const runE8Experiment = () => request<any>('/experiments/e8/run', { method: 'POST' });
+export const runAllBenchmarks = (payload: { seed?: number; max_events?: number }) =>
+  request<any>('/experiments/run-all', { method: 'POST', body: JSON.stringify(payload) });
 
 export const fetchDatasetsList = () => request<any[]>('/datasets/list');
 export const fetchDatasetStatistics = () => request<any>('/datasets/statistics');

@@ -64,6 +64,7 @@ class SimulationEngine:
             total_cores=total_cores,
             total_db=total_db
         )
+        self.metrics = metrics
 
         datacenter = OnPremiseDatacenter(
             env=env,
@@ -163,6 +164,7 @@ class SimulationEngine:
             total_private_cores=total_private_cores,
             total_public_cores=total_public_cores
         )
+        self.metrics = metrics
 
         hybrid_env = HybridCloudEnvironment(
             env=env,

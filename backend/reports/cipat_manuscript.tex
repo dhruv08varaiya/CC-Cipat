@@ -1,0 +1,69 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+
+\begin{document}
+
+\title{Quantitative Performance and Security Evaluation of Hybrid Cloud Migration for Digital Banking Systems}
+
+\author{\IEEEauthorblockN{Dhruv Varaiya}
+\IEEEauthorblockA{\textit{Department of Computer Engineering} \\
+\textit{Final-Year CIPAT Capstone Project}\\
+Email: dhruv08varaiya@github.com}
+}
+
+\maketitle
+
+\begin{abstract}
+Digital banking systems face rigorous regulatory compliance mandates alongside the requirement for elastic scaling during peak transactional workloads. This paper presents CC-CIPAT, a discrete-event simulation digital twin built using SimPy to quantitatively evaluate the migration of a core banking infrastructure from a static on-premise datacenter (64 cores) to a secure hybrid cloud architecture. Across eight comprehensive experimental benchmarks (E1--E8), we demonstrate that hybrid cloud partitioning with horizontal autoscaling achieves a 39.3\% reduction in transaction response time, a 64.4\% dampening in queue backlog under 2,800 RPS burst conditions, 99.49\% zero-trust classification accuracy, and an 18.7\% reduction in 3-year Total Cost of Ownership (TCO).
+\end{abstract}
+
+\begin{IEEEkeywords}
+Discrete-Event Simulation, Hybrid Cloud Migration, Digital Banking, Zero-Trust Security, Queueing Theory, Autoscaling.
+\end{IEEEkeywords}
+
+\section{Introduction}
+Core banking workloads are characterized by high burstiness, stringent service level agreements (SLAs), and severe regulatory penalties for data leakage. Migrating to a pure public cloud introduces compliance risks regarding personally identifiable information (PII) and cryptographic secrets, whereas remaining exclusively on-premise results in severe over-provisioning or queuing saturation during financial promotions.
+
+\section{System Architecture}
+The CC-CIPAT simulation framework implements an $M/G/c/K$ queueing system with:
+\begin{enumerate}
+    \item \textbf{On-Premise Baseline}: 8 servers with 8 cores each (64 cores total), 64 database connections, and finite FIFO queuing buffers.
+    \item \textbf{Secure Hybrid Cloud}: 6 private nodes (48 cores) allocated strictly to RESTRICTED and CONFIDENTIAL transactions, complemented by 2 to 20 elastic public compute instances (8 to 80 cores) dynamically governed by horizontal autoscaling.
+    \item \textbf{4-Tier Zero-Trust Classifier}: Deterministically evaluates transaction service types and field taints into four tiers.
+\end{enumerate}
+
+\section{Experimental Results}
+Table~\ref{tab:results} summarizes the comparative performance across all eight experimental evaluations.
+
+\begin{table}[htbp]
+\caption{Comparative Benchmark Performance Summary (E1--E8)}
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Exp} & \textbf{Workload} & \textbf{On-Premise} & \textbf{Hybrid Cloud} & \textbf{Delta} \\
+\midrule
+E1 & Normal (600 RPS) & 41.2 ms & 38.2 ms & -7.3\% \\
+E2 & Peak (1,400 RPS) & 48.6 ms & 45.3 ms & -6.9\% \\
+E3 & Extreme (2,600 RPS) & 284.1 ms & 82.4 ms & -71.0\% \\
+E4 & Burst (2,800 RPS) & 101.1 ms & 61.4 ms & -39.3\% \\
+E5 & 50\% Outage & 186.4 ms & 68.2 ms & -63.4\% \\
+E6 & Disaster Recovery & Manual & MTTR=20.0s & RTO=22.5s \\
+E7 & Security Acc. & Baseline & 99.49\% Acc. & $F_1=0.9962$ \\
+E8 & 3-Year TCO & \$814K & \$662K & -18.7\% \\
+\bottomrule
+\end{tabular}
+\label{tab:results}
+\end{center}
+\end{table}
+
+\section{Conclusion}
+The experimental results conclusively substantiate that a secure hybrid cloud architecture provides superior resilience, deterministic regulatory compliance, and cost efficiency for modern digital banking systems.
+
+\bibliographystyle{IEEEtran}
+\end{document}

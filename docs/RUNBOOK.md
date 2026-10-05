@@ -1,195 +1,151 @@
 # Practical Developer Runbook
 
-A step-by-step operational guide for team members and evaluators to set up, configure, run, and inspect the banking simulation testbed.
+An operational guide for developers, researchers, and evaluators to configure, execute, inspect, and benchmark the CC-CIPAT simulation testbed and web telemetry terminal.
 
 ---
 
-## 1. Prerequisites
-- **Operating System**: Windows, macOS, or Linux.
-- **Python**: Version 3.10+ (Tested and verified on Python 3.14.6).
-- **Git** (for version control).
+## 1. Environment Setup & Prerequisites
 
----
+- **Python**: Version 3.10+ (with virtual environment support)
+- **Node.js**: Version 18+ (with npm)
+- **Operating System**: Windows, macOS, or Linux
 
-## 2. Installation
-Clone the repository and install the project dependencies in your environment:
+### Step 1: Backend Setup
 ```powershell
-# Navigate to the workspace
-cd "d:\Study\Sem 7\Cloud Computing (3170717)\Cipat"
+cd backend
+python -m venv .venv
 
-# Install dependencies
-python -m pip install -r requirements.txt
+# On Windows:
+.venv\Scripts\activate
+# On Linux / macOS:
+source .venv/bin/activate
+
+pip install -r requirements.txt
 ```
 
-Verify installed packages:
+### Step 2: Frontend Setup
 ```powershell
-python -c "import simpy, matplotlib, pandas, numpy, cryptography; print('Environment verified!')"
+cd ../frontend
+npm install
 ```
 
 ---
 
-## 3. Configuration Files
-All environment parameters reside in `config/`:
-- `config/simulation_config.json`: Infrastructure parameters (server counts, core capacities, latencies, queue limits).
-- `config/workloads_config.json`: Formal definitions for workloads W1 to W6.
-- `config/dataset_config.json`: Sizing presets (`small`, `medium`, `large`) and limits.
-- `config/security_rules.json`: Classification tiers and service mappings.
+## 2. Launching Services
+
+### Backend REST API Server (FastAPI + Uvicorn)
+```powershell
+cd backend
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+- API Documentation: `http://localhost:8000/docs`
+- Health Endpoint: `http://localhost:8000/api/health`
+
+### Frontend Web Dashboard (React 18 + Vite)
+```powershell
+cd frontend
+npm run dev
+```
+- Web Application: `http://localhost:5173`
+- Production Build Check: `npm run build`
 
 ---
 
-## 4. Synthetic Dataset & Workload Generation
-To generate the 8 synthetic banking datasets and W1–W6 workload event traces:
+## 3. Dataset & Workload Generation
+
+To re-generate the 8 synthetic banking datasets (170k rows) and W1–W6 workload traces:
 ```powershell
-# Standard profile: 10,000 customers, 10,000 accounts, 50,000 transactions, seed=42
-python generate_data.py --profile medium
+cd backend
+
+# Medium profile: 10k customers, 10k accounts, 50k transactions, seed=42
+python -m src.data_generator.generate_data --profile medium
 
 # Fast profile for quick test iterations:
-python generate_data.py --profile small
-
-# Custom sizing:
-python generate_data.py --customers 5000 --transactions 25000 --seed 42
+python -m src.data_generator.generate_data --profile small
 ```
-Outputs are written to:
-- `data/synthetic/*.csv`
-- `data/workloads/*.jsonl`
-- `reports/dataset_statistics.md`
+Generated artifacts:
+- `data/synthetic/*.csv` (8 relational tables)
+- `data/workloads/*.jsonl` (W1 through W6 traces)
+- `reports/dataset_statistics.md` (Dataset statistics)
 
 ---
 
-## 5. Running On-Premise Baseline Simulations
-Execute the baseline simulation against pre-generated workload traces:
+## 4. Running Experiments from CLI
+
+### Run On-Premise Baseline
 ```powershell
-# Normal Workload (W1, 5,000 requests)
-python run_on_premise_sim.py --workload W1 --seed 42
-
-# Peak Workload (W2, 10,000 requests)
-python run_on_premise_sim.py --workload W2 --seed 42
-
-# Extreme Workload (W3, 15,000 requests)
-python run_on_premise_sim.py --workload W3 --seed 42
-
-# Fast calibration run (e.g., 200 events)
-python run_on_premise_sim.py --workload W1 --max-events 200
+python -m src.experiments.comparison --architecture on_premise --workload W1
 ```
 
----
-
-## 6. Running Hybrid Cloud Simulations (Stage 4)
-Execute the hybrid-cloud dual-tier simulation (48 Private cores + 8 Public cores, deterministic routing):
+### Run Hybrid Cloud Autoscaling (E4 Burst Benchmark)
 ```powershell
-# Normal Workload (W1, 5,000 requests)
-python run_hybrid_cloud_sim.py --workload W1 --seed 42
-
-# Peak Workload (W2, 10,000 requests)
-python run_hybrid_cloud_sim.py --workload W2 --seed 42
-
-# Extreme Workload (W3, 15,000 requests)
-python run_hybrid_cloud_sim.py --workload W3 --seed 42
-
-# Fast calibration run (200 events)
-python run_hybrid_cloud_sim.py --workload W1 --max-events 200
+python -m src.experiments.e4_burst_autoscaling --seed 42
 ```
 
----
-
-## 7. Running Comparative Validations (E1–E3)
-Execute the automated fair comparison validator and report generator:
+### Run Zero-Trust Security Classifier (E7 Benchmark)
 ```powershell
-# Normal Workload Comparison (E1)
-python run_comparison.py --experiment E1
-
-# Peak Workload Comparison (E2)
-python run_comparison.py --experiment E2
-
-# Extreme Workload Comparison (E3)
-python run_comparison.py --experiment E3
+python -m src.experiments.e7_security_classification --seed 42
 ```
 
----
-
-## 8. Running Experiment E4 (Burst + Autoscaling)
-Execute the complete end-to-end Experiment E4 comparing Fixed Hybrid against Autoscaling Hybrid under Workload W4:
+### Run All Benchmarks (E1–E8 Suite)
 ```powershell
-# Runs Fixed Hybrid vs Autoscaling Hybrid on W4 and generates 8 publication figures:
-python run_e4_experiment.py --seed 42
-
-# Running individual autoscaling simulation via hybrid runner:
-python run_hybrid_cloud_sim.py --workload W4 --autoscaling --seed 42
+python -m src.experiments.comparison --run-all
 ```
-Outputs are generated in:
-- `results/raw/hybrid_fixed/W4/`
-- `results/raw/hybrid_autoscaling/W4/`
-- `results/processed/E4/comparison_summary.json` & `comparison_table.md`
-- `results/figures/E4/*.png` (All 8 publication figures)
 
 ---
 
-## 9. Running Experiment E7 (Security & Data Classification)
-Execute the complete end-to-end Experiment E7 evaluating rule-based classification, secure compliance routing, access controls, cryptographic overhead, and audit logging:
+## 5. Automated Test Suite
+
+Run the full backend test suite:
 ```powershell
-# Run Experiment E7 and generate all 8 publication figures:
-python run_e7_experiment.py --seed 42
+cd backend
+pytest tests/ -v
 ```
-Outputs are generated in:
-- `results/raw/security/audit_log.jsonl` (Comprehensive audit log)
-- `results/raw/E7/e7_requests.jsonl` (Processed request telemetry)
-- `results/raw/E7/security_events.jsonl` (Detected governance risk events)
-- `results/processed/E7/e7_summary.json` & `e7_report.md`
-- `results/figures/E7/*.png` (All 8 publication figures)
 
----
-
-## 10. Running Tests
-Run the entire automated test suite:
+Execute specific test modules:
 ```powershell
-python -m unittest discover tests
-```
-Individual test modules:
-```powershell
-# Project structure and config validation:
-python -m unittest tests/test_project_structure.py
+# Project structure & config validation
+pytest tests/test_project_structure.py -v
 
-# Synthetic data referential integrity and reproducibility:
-python -m unittest tests/test_synthetic_data.py
+# Synthetic dataset referential integrity
+pytest tests/test_synthetic_data.py -v
 
-# On-premise discrete-event simulation engine & queue invariants:
-python -m unittest tests/test_on_premise_sim.py
+# On-premise discrete simulation invariants
+pytest tests/test_on_premise_sim.py -v
 
-# Hybrid-cloud routing, queues, interconnect, and accounting invariants:
-python -m unittest tests/test_hybrid_cloud_sim.py
+# Hybrid cloud compliance routing & interconnect
+pytest tests/test_hybrid_cloud_sim.py -v
 
-# Public cloud horizontal autoscaling, load balancing & draining:
-python -m unittest tests/test_autoscaling.py
+# Autoscaling controller & load balancer
+pytest tests/test_autoscaling.py -v
 
-# Security classification, Auth/MFA/RBAC, crypto overhead, and risk detection:
-python -m unittest tests/test_security_module.py
+# Zero-trust classifier, RBAC, and crypto models
+pytest tests/test_security_module.py -v
 ```
 
 ---
 
-## 11. Finding Results
-Simulation outputs are structured in `results/`:
-- `results/raw/on_premise/<workload>/`: On-premise baseline runs.
-- `results/raw/hybrid_cloud/<workload>/`: Hybrid cloud baseline runs.
-- `results/raw/hybrid_fixed/W4/`: Fixed hybrid run for Experiment E4.
-- `results/raw/hybrid_autoscaling/W4/`: Elastic autoscaling run with `scaling_events.jsonl`.
-- `results/raw/comparison/<experiment>/`: Comparative analyses for E1, E2, E3.
-- `results/processed/E4/`: Processed summary statistics and Markdown table for E4.
-- `results/figures/E4/`: 8 publication figures for Experiment E4.
-- `results/raw/security/audit_log.jsonl`: Structured security audit trail.
-- `results/raw/E7/`: E7 request-level telemetry and security events.
-- `results/processed/E7/`: E7 executive summary and markdown report.
-- `results/figures/E7/`: 8 publication figures for Experiment E7.
+## 6. Telemetry & Results Artifacts
+
+Simulation results and verification reports are stored in `results/`:
+- `results/raw/on_premise/`: On-premise baseline runs.
+- `results/raw/hybrid_cloud/`: Hybrid cloud baseline runs.
+- `results/raw/hybrid_autoscaling/W4/`: Elastic autoscaling telemetry and scaling events.
+- `results/raw/security/audit_log.jsonl`: Structured JSON Lines security audit trail.
+- `results/processed/E4/`: E4 autoscaling comparison summary and table.
+- `results/processed/E7/`: E7 classification metrics and risk events.
+- `results/figures/E4/`: 8 publication figures for autoscaling burst dynamics.
+- `results/figures/E7/`: 8 publication figures for zero-trust security validation.
 
 ---
 
-## 12. Troubleshooting
+## 7. Troubleshooting
+
 - **Error: `ModuleNotFoundError: No module named 'simpy'`**  
-  *Fix*: Run `python -m pip install -r requirements.txt`.
-- **Error: `Workload trace not found`**  
-  *Fix*: Run `python generate_data.py --profile medium` to generate workload traces in `data/workloads/`.
-- **Error: `Comparison validation failed`**  
-  *Fix*: Ensure both On-Premise and Hybrid Cloud simulations have been executed on the same workload trace before running `run_comparison.py`.
+  *Fix*: Ensure virtual environment is activated, then run `pip install -r requirements.txt`.
+- **Error: `Port 8000 already in use`**  
+  *Fix*: Kill existing uvicorn process or specify another port (`--port 8001`).
+- **Error: `Vite proxy ECONNREFUSED`**  
+  *Fix*: Ensure FastAPI backend is running on `http://localhost:8000` before accessing API-connected frontend tabs.
 - **Accounting Invariant Warning**  
-  *Fix*: The simulation engine enforces $\text{Total} = \text{Completed} + \text{Dropped} + \text{Failed}$. If an error is thrown, check if a process terminated prematurely or an exception occurred in the discrete-event loop.
-
+  *Fix*: SimPy simulation enforces $\text{Total} = \text{Completed} + \text{Dropped} + \text{Failed}$. If an error is thrown, inspect `raw_requests.jsonl` to ensure all event lifecycles terminated cleanly.

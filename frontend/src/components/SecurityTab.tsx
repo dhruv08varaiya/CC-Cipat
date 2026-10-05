@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
-  Lock, 
-  Key, 
-  AlertOctagon, 
-  Search, 
-  CheckCircle, 
-  XCircle,
-  Cpu
+  AlertOctagon
 } from 'lucide-react';
 import { 
   fetchSecurityRules, 
@@ -16,7 +10,7 @@ import {
 } from '../api/client';
 
 export const SecurityTab: React.FC = () => {
-  const [rules, setRules] = useState<any>(null);
+  const [, setRules] = useState<any>(null);
   const [riskRegister, setRiskRegister] = useState<any>(null);
   const [serviceType, setServiceType] = useState('fund_transfer');
   const [payloadJson, setPayloadJson] = useState(
@@ -48,41 +42,41 @@ export const SecurityTab: React.FC = () => {
   const getBadgeClass = (tier: string) => {
     switch (tier) {
       case 'RESTRICTED':
-        return 'bg-rose-500/20 text-rose-300 border-rose-500/30';
+        return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
       case 'CONFIDENTIAL':
-        return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+        return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
       case 'INTERNAL':
-        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+        return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
       default:
-        return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 font-mono">
       {/* 4-Tier Zero Trust Classifier Sandbox */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <div className="flex items-center space-x-3 pb-4 border-b border-slate-800 mb-6">
-          <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <ShieldCheck className="h-5 w-5" />
+      <div className="bg-[#12131A] border border-[#27272A] rounded-md p-3.5 space-y-3">
+        <div className="flex items-center space-x-2.5 pb-2 border-b border-[#27272A]">
+          <div className="p-1.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+            <ShieldCheck className="h-4 w-4" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">4-Tier Zero-Trust Data Classifier Sandbox</h2>
-            <p className="text-xs text-slate-400">Test live payload classification and compliance routing destination</p>
+            <h2 className="text-xs font-bold text-zinc-100 uppercase tracking-wider">4-Tier Data Classifier Sandbox</h2>
+            <p className="text-[11px] text-zinc-500">Deterministic taint analysis and destination routing verification</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {/* Input form */}
-          <div className="space-y-4">
+          <div className="space-y-2.5 bg-[#090A0F] border border-[#27272A] p-3 rounded">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
                 Banking Service Type
               </label>
               <select
                 value={serviceType}
                 onChange={(e) => setServiceType(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500"
+                className="w-full bg-[#12131A] border border-[#27272A] rounded px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-500"
               >
                 <option value="fund_transfer">fund_transfer (RESTRICTED)</option>
                 <option value="balance_inquiry">balance_inquiry (INTERNAL)</option>
@@ -95,62 +89,62 @@ export const SecurityTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              <label className="block text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-1">
                 Request Payload (JSON)
               </label>
               <textarea
                 rows={5}
                 value={payloadJson}
                 onChange={(e) => setPayloadJson(e.target.value)}
-                className="w-full bg-slate-950 font-mono text-xs border border-slate-700 rounded-lg p-3 text-slate-200 focus:outline-none focus:border-sky-500"
+                className="w-full bg-[#12131A] text-xs border border-[#27272A] rounded p-2 text-zinc-200 focus:outline-none focus:border-zinc-500"
               />
             </div>
 
             <button
               onClick={handleTestClassify}
               disabled={classifying}
-              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-sm hover:from-emerald-400 hover:to-teal-500 shadow-lg shadow-emerald-500/20 transition-all"
+              className="w-full py-1.5 px-3 rounded bg-zinc-800 border border-zinc-700 text-zinc-100 font-medium text-xs hover:bg-zinc-700 transition-colors disabled:opacity-50"
             >
-              {classifying ? 'Analyzing Taint & Keywords...' : 'Classify Payload'}
+              {classifying ? 'Analyzing Payload...' : 'Execute Classification'}
             </button>
 
-            {error && <p className="text-xs text-rose-400 mt-2">{error}</p>}
+            {error && <p className="text-xs text-rose-400 mt-1">{error}</p>}
           </div>
 
           {/* Classification Output */}
-          <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 flex flex-col justify-center">
+          <div className="bg-[#090A0F] border border-[#27272A] rounded p-3 flex flex-col justify-center text-xs">
             {classifyResult ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                  <span className="text-xs text-slate-400">Classified Tier</span>
-                  <span className={`text-xs px-3 py-1 rounded-full font-bold border ${getBadgeClass(classifyResult.classification)}`}>
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between pb-2 border-b border-[#27272A]">
+                  <span className="text-zinc-500">Classified Tier</span>
+                  <span className={`text-xs px-2 py-0.5 rounded font-bold border ${getBadgeClass(classifyResult.classification)}`}>
                     {classifyResult.classification}
                   </span>
                 </div>
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                  <span className="text-xs text-slate-400">Target Datacenter Route</span>
+                <div className="flex items-center justify-between pb-2 border-b border-[#27272A]">
+                  <span className="text-zinc-500">Datacenter Route</span>
                   <span className={`text-xs font-bold px-2 py-0.5 rounded ${
-                    classifyResult.target_datacenter === 'PRIVATE' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-sky-500/20 text-sky-300'
+                    classifyResult.target_datacenter === 'PRIVATE' ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20' : 'bg-sky-500/10 text-sky-300 border border-sky-500/20'
                   }`}>
-                    {classifyResult.target_datacenter} CLOUD
+                    {classifyResult.target_datacenter}
                   </span>
                 </div>
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                  <span className="text-xs text-slate-400">Processing Latency</span>
-                  <span className="text-xs font-mono text-emerald-400">{classifyResult.processing_time_ms.toFixed(3)} ms</span>
+                <div className="flex items-center justify-between pb-2 border-b border-[#27272A]">
+                  <span className="text-zinc-500">Inspection Overhead</span>
+                  <span className="text-emerald-400 font-bold">{classifyResult.processing_time_ms.toFixed(3)} ms</span>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-400 block mb-1">Decision Reason</span>
-                  <p className="text-xs text-slate-300 bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                  <span className="text-zinc-500 block mb-1">Decision Reason</span>
+                  <p className="text-zinc-300 bg-[#12131A] p-2 rounded border border-[#27272A]">
                     {classifyResult.decision_reason}
                   </p>
                 </div>
                 {classifyResult.tainted_fields?.length > 0 && (
                   <div>
-                    <span className="text-xs text-slate-400 block mb-1">Tainted Sensitive Fields</span>
+                    <span className="text-zinc-500 block mb-1">Tainted Sensitive Fields</span>
                     <div className="flex flex-wrap gap-1">
                       {classifyResult.tainted_fields.map((f: string, i: number) => (
-                        <span key={i} className="text-[10px] bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded border border-rose-500/20 font-mono">
+                        <span key={i} className="text-[10px] bg-rose-500/10 text-rose-400 px-1.5 py-0.2 rounded border border-rose-500/20">
                           {f}
                         </span>
                       ))}
@@ -159,9 +153,9 @@ export const SecurityTab: React.FC = () => {
                 )}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <ShieldCheck className="h-10 w-10 text-slate-700 mx-auto mb-2" />
-                <p className="text-xs text-slate-500">Run a payload classification test to view zero-trust routing decisions.</p>
+              <div className="text-center py-6">
+                <ShieldCheck className="h-6 w-6 text-zinc-700 mx-auto mb-1.5" />
+                <p className="text-[11px] text-zinc-500">Run a payload classification test to inspect zero-trust routing decisions.</p>
               </div>
             )}
           </div>
@@ -169,33 +163,33 @@ export const SecurityTab: React.FC = () => {
       </div>
 
       {/* Risk Register R1–R6 */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <h2 className="text-lg font-bold text-white mb-4 flex items-center space-x-2">
-          <AlertOctagon className="h-5 w-5 text-amber-400" />
-          <span>Security Risk Register (R1–R6)</span>
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="bg-[#12131A] border border-[#27272A] rounded-md p-3.5">
+        <div className="flex items-center space-x-2 pb-2 border-b border-[#27272A] mb-2.5">
+          <AlertOctagon className="h-4 w-4 text-amber-400" />
+          <h2 className="text-xs font-bold text-zinc-100 uppercase">Security Risk Register (R1–R6)</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
           {riskRegister?.risks ? (
             Object.entries(riskRegister.risks).map(([key, risk]: [string, any]) => (
-              <div key={key} className="bg-slate-950 border border-slate-800 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-mono text-xs font-bold text-amber-400">{key}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
-                    risk.severity === 'CRITICAL' ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'
+              <div key={key} className="bg-[#090A0F] border border-[#27272A] rounded p-2.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-bold text-amber-400">{key}</span>
+                  <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold uppercase ${
+                    risk.severity === 'CRITICAL' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                   }`}>
                     {risk.severity}
                   </span>
                 </div>
-                <h3 className="text-sm font-semibold text-white mb-1">{risk.title}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed mb-3">{risk.description}</p>
-                <div className="border-t border-slate-800/80 pt-2 text-[11px] text-slate-500">
-                  <span className="text-slate-400 font-medium">Mitigation: </span>
+                <h3 className="text-xs font-semibold text-zinc-200 mb-1">{risk.title}</h3>
+                <p className="text-[11px] text-zinc-400 leading-relaxed mb-2">{risk.description}</p>
+                <div className="border-t border-[#27272A] pt-1.5 text-[10px] text-zinc-500">
+                  <span className="text-zinc-400 font-medium">Mitigation: </span>
                   {risk.mitigation}
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-xs text-slate-500">Loading risk register definitions...</p>
+            <p className="text-xs text-zinc-500">Loading risk register definitions...</p>
           )}
         </div>
       </div>

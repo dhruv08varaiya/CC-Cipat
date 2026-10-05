@@ -1,13 +1,12 @@
 import React from 'react';
 import { 
-  Server, 
-  Activity, 
+  Radio, 
+  Layers, 
+  Cpu, 
   FlaskConical, 
   ShieldCheck, 
   Database, 
-  Layers,
-  Zap,
-  Radio
+  Info
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -16,55 +15,59 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
-  const tabs = [
-    { id: 'digital_twin', label: 'Living Digital Twin', icon: Radio },
-    { id: 'lifecycle', label: 'Action Inspector', icon: Zap },
-    { id: 'simulation', label: 'Discrete Sim', icon: Activity },
-    { id: 'experiments', label: 'Experiments Lab', icon: FlaskConical },
-    { id: 'security', label: 'Security & Compliance', icon: ShieldCheck },
-    { id: 'data', label: 'Data Explorer', icon: Database },
-    { id: 'overview', label: 'Architecture', icon: Layers },
+  const navItems = [
+    { id: 'digital_twin', label: 'Digital Twin', icon: Radio },
+    { id: 'lifecycle', label: 'Lifecycle', icon: Layers },
+    { id: 'simulation', label: 'Simulation', icon: Cpu },
+    { id: 'experiments', label: 'Experiments', icon: FlaskConical },
+    { id: 'security', label: 'Security', icon: ShieldCheck },
+    { id: 'data', label: 'Data', icon: Database },
+    { id: 'overview', label: 'Overview', icon: Info },
   ];
 
   return (
-    <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
-              <Server className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-bold text-lg text-white tracking-tight">CC-CIPAT</span>
-                <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  Real-Time Twin
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">Secure Hybrid Cloud Banking Simulation</p>
-            </div>
+    <header className="sticky top-0 z-50 bg-[#090A0F] border-b border-[#27272A] px-4 sm:px-6">
+      <div className="max-w-[1400px] mx-auto flex items-center justify-between h-12">
+        {/* Brand */}
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
+            <span className="font-mono font-bold text-sm tracking-tight text-zinc-100">
+              CC-CIPAT
+            </span>
+            <span className="font-mono text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+              Simulation Twin
+            </span>
           </div>
+        </div>
 
-          <nav className="flex space-x-1">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                    isActive
-                      ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-                  }`}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </nav>
+        {/* Tab Navigation */}
+        <nav className="flex items-center space-x-1 sm:space-x-2 h-full">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`h-full flex items-center space-x-1.5 px-3 border-b-2 text-xs font-medium transition-colors ${
+                  isActive
+                    ? 'border-zinc-200 text-zinc-100 bg-zinc-900/50'
+                    : 'border-transparent text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/30'
+                }`}
+              >
+                <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-zinc-100' : 'text-zinc-500'}`} />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Status Indicator */}
+        <div className="hidden sm:flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-[11px]">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>SimPy 4.1</span>
+          </div>
         </div>
       </div>
     </header>

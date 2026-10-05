@@ -3,23 +3,11 @@ import {
   Play, 
   Pause, 
   RotateCcw, 
-  ChevronRight, 
-  ShieldCheck, 
-  Lock, 
-  Cpu, 
-  Server, 
-  Database, 
-  Clock, 
-  CheckCircle2, 
-  AlertTriangle, 
-  XCircle,
-  Zap,
-  ArrowRight,
-  Fingerprint,
   Radio,
-  FileCode
+  FileCode,
+  AlertTriangle
 } from 'lucide-react';
-import { traceTransaction, LifecycleStageItem, TraceTransactionResponse } from '../api/client';
+import { traceTransaction, TraceTransactionResponse } from '../api/client';
 
 export const LifecycleInspectorTab: React.FC = () => {
   const [selectedScenario, setSelectedScenario] = useState('wire_transfer');
@@ -31,15 +19,15 @@ export const LifecycleInspectorTab: React.FC = () => {
   // Playback state
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1); // 1x = 1000ms per step
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
   const scenarios = [
     {
       id: 'wire_transfer',
-      title: 'High-Value Wire Transfer ($15,000)',
+      title: 'Wire Transfer ($15k)',
       service_type: 'fund_transfer',
       user_role: 'CUSTOMER',
-      badge: 'RESTRICTED / MFA',
+      badge: 'RESTRICTED',
       badgeColor: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
       payload: {
         account_id: 'ACC_984128',
@@ -56,7 +44,7 @@ export const LifecycleInspectorTab: React.FC = () => {
       title: 'KYC Document Verification',
       service_type: 'kyc_verification',
       user_role: 'BANK_OPERATOR',
-      badge: 'RESTRICTED / PRIVATE',
+      badge: 'RESTRICTED',
       badgeColor: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
       payload: {
         customer_id: 'CUST_55102',
@@ -67,10 +55,10 @@ export const LifecycleInspectorTab: React.FC = () => {
     },
     {
       id: 'balance_inquiry',
-      title: 'Mobile Balance Inquiry',
+      title: 'Balance Inquiry',
       service_type: 'balance_inquiry',
       user_role: 'CUSTOMER',
-      badge: 'INTERNAL / PUBLIC CLOUD',
+      badge: 'INTERNAL',
       badgeColor: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
       payload: {
         account_id: 'ACC_984128',
@@ -80,11 +68,11 @@ export const LifecycleInspectorTab: React.FC = () => {
     },
     {
       id: 'fx_rates',
-      title: 'Live FX Currency Rates',
+      title: 'FX Currency Rates',
       service_type: 'fx_rates',
       user_role: 'CUSTOMER',
-      badge: 'PUBLIC / EDGE CACHED',
-      badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+      badge: 'PUBLIC',
+      badgeColor: 'bg-zinc-800 text-zinc-300 border-zinc-700',
       payload: {
         base_currency: 'USD',
         target_currencies: ['EUR', 'GBP', 'JPY', 'INR']
@@ -92,24 +80,38 @@ export const LifecycleInspectorTab: React.FC = () => {
     },
     {
       id: 'rbac_attack',
-      title: 'Privilege Escalation Attack Probe',
+      title: 'Privilege Escalation Probe',
       service_type: 'fund_transfer',
-      user_role: 'SECURITY_AUDITOR', // Auditors cannot transfer funds
-      badge: 'BLOCKED / R2 VIOLATION',
+      user_role: 'SECURITY_AUDITOR',
+      badge: 'R2 ATTACK',
       badgeColor: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
       payload: {
-        account_id: 'ACC_SYS_001',
-        recipient_id: 'ACC_ATTACK_99',
-        amount: 500000.00,
-        tampered_role: 'ADMIN'
+        account_id: 'ACC_984128',
+        recipient_id: 'ACC_999999',
+        amount: 50000.00,
+        unauthorized_override: true
+      }
+    },
+    {
+      id: 'chaos_drop',
+      title: 'Node Outage Failover',
+      service_type: 'fund_transfer',
+      user_role: 'CUSTOMER',
+      badge: 'FAILOVER',
+      badgeColor: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+      payload: {
+        account_id: 'ACC_984128',
+        recipient_id: 'ACC_119482',
+        amount: 250.00,
+        force_failover_route: true
       }
     }
   ];
 
-  const runTrace = async (scenarioId = selectedScenario) => {
+  const runTrace = async (scenId?: string) => {
+    const targetId = scenId || selectedScenario;
+    const scen = scenarios.find((s) => s.id === targetId) || scenarios[0];
     setLoading(true);
-    setIsPlaying(false);
-    const scen = scenarios.find((s) => s.id === scenarioId) || scenarios[0];
     try {
       const res = await traceTransaction({
         service_type: scen.service_type,
@@ -120,9 +122,9 @@ export const LifecycleInspectorTab: React.FC = () => {
       });
       setTraceData(res.trace);
       setCurrentStepIndex(0);
-      setIsPlaying(true);
-    } catch (err) {
-      console.error('Failed to run lifecycle trace:', err);
+      setIsPlaying(false);
+    } catch (e) {
+      console.error('Trace execution failed', e);
     } finally {
       setLoading(false);
     }
@@ -138,7 +140,7 @@ export const LifecycleInspectorTab: React.FC = () => {
     if (isPlaying && traceData && currentStepIndex < traceData.stages.length - 1) {
       timer = setTimeout(() => {
         setCurrentStepIndex((prev) => prev + 1);
-      }, 1200 / playbackSpeed);
+      }, 1000 / playbackSpeed);
     } else if (isPlaying && traceData && currentStepIndex >= traceData.stages.length - 1) {
       setIsPlaying(false);
     }
@@ -148,233 +150,166 @@ export const LifecycleInspectorTab: React.FC = () => {
   const stages = traceData?.stages || [];
   const currentStage = stages[currentStepIndex] || null;
 
-  const stageIcons = [
-    Radio,
-    ShieldCheck,
-    Fingerprint,
-    ArrowRight,
-    Server,
-    Cpu,
-    Lock,
-    CheckCircle2
-  ];
-
   return (
-    <div className="space-y-6">
-      {/* Top Header & Hardware Efficiency Badge */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-        <div>
-          <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
-              <Zap className="h-4 w-4" />
-            </div>
-            <h1 className="text-xl font-bold text-white">Glass-Box System Lifecycle Inspector</h1>
-          </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Real-time step-by-step visual trace through all 8 banking simulation layers
-          </p>
+    <div className="space-y-3">
+      {/* Top Toolbar */}
+      <div className="bg-[#12131A] border border-[#27272A] rounded-md p-2.5 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
+        <div className="flex items-center space-x-2">
+          <span className="font-bold text-zinc-100">DISTRIBUTED TRACE INSPECTOR</span>
+          <span className="text-[10px] text-zinc-500">&bull; 8-Stage Span Pipeline</span>
         </div>
 
-
+        <div className="flex items-center space-x-4">
+          <div>
+            <span className="text-[10px] text-zinc-500">Transaction ID: </span>
+            <span className="text-zinc-200 font-bold">{traceData?.transaction_id || 'TXN_984128'}</span>
+          </div>
+          <div>
+            <span className="text-[10px] text-zinc-500">Total Latency: </span>
+            <span className="text-emerald-400 font-bold">{traceData?.total_latency_ms.toFixed(2)} ms</span>
+          </div>
+        </div>
       </div>
 
-      {/* Scenario Presets & Chaos Triggers */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Scenarios (2 cols) */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-3">
-            1. Select Action Scenario
-          </span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {scenarios.map((scen) => {
-              const isSelected = selectedScenario === scen.id;
-              return (
-                <button
-                  key={scen.id}
-                  onClick={() => {
-                    setSelectedScenario(scen.id);
-                    runTrace(scen.id);
-                  }}
-                  className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between ${
-                    isSelected
-                      ? 'bg-sky-500/10 border-sky-500 text-white shadow-md shadow-sky-500/10'
-                      : 'bg-slate-950 border-slate-800/80 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-bold text-white">{scen.title}</span>
-                  </div>
-                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded border inline-block w-fit ${scen.badgeColor}`}>
-                    {scen.badge}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+      {/* Scenario Presets Bar */}
+      <div className="bg-[#12131A] border border-[#27272A] rounded-md p-2.5 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-1.5 flex-1">
+          {scenarios.map((scen) => {
+            const isSelected = selectedScenario === scen.id;
+            return (
+              <button
+                key={scen.id}
+                onClick={() => {
+                  setSelectedScenario(scen.id);
+                  runTrace(scen.id);
+                }}
+                className={`px-2.5 py-1 rounded text-xs font-mono transition-colors flex items-center space-x-1.5 border ${
+                  isSelected
+                    ? 'bg-zinc-800 border-zinc-700 text-zinc-100 font-semibold'
+                    : 'bg-[#090A0F] border-[#27272A] text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+                }`}
+              >
+                <span>{scen.title}</span>
+                <span className={`text-[9px] px-1 py-0.2 rounded border ${scen.badgeColor}`}>
+                  {scen.badge}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Chaos Injection Toggles (1 col) */}
-        <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-3 flex items-center space-x-1.5">
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
-              <span>2. Chaos Injection Lab</span>
-            </span>
-            <div className="space-y-2.5">
-              <label className="flex items-center space-x-3 p-2.5 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-slate-700">
-                <input
-                  type="checkbox"
-                  checked={chaosNodeDrop}
-                  onChange={(e) => setChaosNodeDrop(e.target.checked)}
-                  className="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0"
-                />
-                <div>
-                  <span className="text-xs font-semibold text-white block">Simulate 50% Node Outage</span>
-                  <span className="text-[10px] text-slate-400 block">Triggers M/G/c queue backpressure</span>
-                </div>
-              </label>
-
-              <label className="flex items-center space-x-3 p-2.5 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-slate-700">
-                <input
-                  type="checkbox"
-                  checked={chaosNetworkSpike}
-                  onChange={(e) => setChaosNetworkSpike(e.target.checked)}
-                  className="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-0"
-                />
-                <div>
-                  <span className="text-xs font-semibold text-white block">Inject 4.5x WAN Latency Spike</span>
-                  <span className="text-[10px] text-slate-400 block">Degrades public cloud transit</span>
-                </div>
-              </label>
-            </div>
-          </div>
-
+        {/* Stepper Controls */}
+        <div className="flex items-center space-x-1.5 font-mono text-xs">
           <button
-            onClick={() => runTrace()}
-            disabled={loading}
-            className="w-full mt-3 py-2 px-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 text-white text-xs font-bold hover:from-sky-400 hover:to-indigo-500 transition-all flex items-center justify-center space-x-1.5 shadow-md shadow-sky-500/20"
+            onClick={() => setIsPlaying(!isPlaying)}
+            className="flex items-center space-x-1 px-2.5 py-1 rounded bg-zinc-800 text-zinc-200 hover:bg-zinc-700 transition-colors border border-zinc-700"
           >
-            <RotateCcw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Re-Execute Action Trace</span>
+            {isPlaying ? <Pause className="h-3 w-3 fill-current" /> : <Play className="h-3 w-3 fill-current" />}
+            <span>{isPlaying ? 'Pause' : 'Play'}</span>
+          </button>
+          <button
+            disabled={currentStepIndex <= 0}
+            onClick={() => {
+              setIsPlaying(false);
+              setCurrentStepIndex((prev) => Math.max(0, prev - 1));
+            }}
+            className="px-2 py-1 rounded bg-[#090A0F] border border-[#27272A] text-zinc-300 disabled:opacity-30 hover:border-zinc-700"
+          >
+            Prev
+          </button>
+          <button
+            disabled={!traceData || currentStepIndex >= traceData.stages.length - 1}
+            onClick={() => {
+              setIsPlaying(false);
+              setCurrentStepIndex((prev) => Math.min((traceData?.stages.length || 1) - 1, prev + 1));
+            }}
+            className="px-2 py-1 rounded bg-zinc-800 text-zinc-100 border border-zinc-700 disabled:opacity-30 hover:bg-zinc-700 font-semibold"
+          >
+            Next
           </button>
         </div>
       </div>
 
-      {/* Interactive 8-Stage Stepper Track */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-        <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-800">
-          <div className="flex items-center space-x-3">
-            <span className="text-xs font-bold font-mono px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/30">
-              TXN: {traceData?.transaction_id || 'TXN_984128'}
-            </span>
-            <span className="text-xs text-slate-400">
-              Total Latency: <strong className="text-emerald-400 font-mono">{traceData?.total_latency_ms.toFixed(2)} ms</strong>
-            </span>
-          </div>
-
-          {/* Stepper Controls */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-semibold hover:bg-slate-700"
-            >
-              {isPlaying ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 fill-current" />}
-              <span>{isPlaying ? 'Pause' : 'Auto Play'}</span>
-            </button>
-            <button
-              disabled={currentStepIndex <= 0}
-              onClick={() => {
-                setIsPlaying(false);
-                setCurrentStepIndex((prev) => Math.max(0, prev - 1));
-              }}
-              className="px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold disabled:opacity-40 hover:bg-slate-700"
-            >
-              Prev
-            </button>
-            <button
-              disabled={!traceData || currentStepIndex >= traceData.stages.length - 1}
-              onClick={() => {
-                setIsPlaying(false);
-                setCurrentStepIndex((prev) => Math.min((traceData?.stages.length || 1) - 1, prev + 1));
-              }}
-              className="px-2.5 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-semibold disabled:opacity-40 hover:bg-sky-500"
-            >
-              Next
-            </button>
-            <select
-              value={playbackSpeed}
-              onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
-              className="bg-slate-950 border border-slate-700 text-xs text-slate-300 rounded-lg px-2 py-1 focus:outline-none"
-            >
-              <option value={0.5}>0.5x Speed</option>
-              <option value={1}>1.0x Speed</option>
-              <option value={2}>2.0x Speed</option>
-            </select>
-          </div>
+      {/* Gantt Style Span Waterfall */}
+      <div className="bg-[#12131A] border border-[#27272A] rounded-md p-3.5 space-y-3">
+        <div className="flex items-center justify-between pb-1.5 border-b border-[#27272A]">
+          <span className="font-mono text-xs font-semibold text-zinc-200">
+            DISTRIBUTED TRACE WATERFALL
+          </span>
+          <span className="font-mono text-[10px] text-zinc-500">
+            Click any span to inspect payload &amp; state
+          </span>
         </div>
 
-        {/* 8-Stage Visual Nodes Flow */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+        <div className="space-y-1.5">
           {stages.map((stg, idx) => {
-            const Icon = stageIcons[idx] || Radio;
             const isCurrent = idx === currentStepIndex;
             const isCompleted = idx < currentStepIndex;
             const isBlocked = stg.status === 'BLOCKED';
-            const isWarning = stg.status === 'WARNING';
-
-            let nodeBg = 'bg-slate-950 border-slate-800 text-slate-500';
-            if (isCurrent) {
-              nodeBg = 'bg-sky-500/20 border-sky-400 text-sky-300 shadow-lg shadow-sky-500/20 ring-2 ring-sky-500/40';
-            } else if (isCompleted) {
-              nodeBg = 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400';
-            } else if (isBlocked) {
-              nodeBg = 'bg-rose-500/20 border-rose-500 text-rose-300';
-            }
+            const totalMs = traceData?.total_latency_ms || 40;
+            const leftPercent = (stg.timestamp_offset_ms / totalMs) * 100;
+            const widthPercent = Math.max(5, (stg.duration_ms / totalMs) * 100);
 
             return (
-              <button
+              <div
                 key={stg.stage_id}
                 onClick={() => {
                   setIsPlaying(false);
                   setCurrentStepIndex(idx);
                 }}
-                className={`p-3 rounded-xl border text-center transition-all relative flex flex-col items-center justify-between min-h-[110px] ${nodeBg}`}
+                className={`p-2 rounded border transition-colors cursor-pointer flex items-center justify-between font-mono text-xs ${
+                  isCurrent
+                    ? 'bg-zinc-800/80 border-zinc-600 text-white'
+                    : isCompleted
+                    ? 'bg-[#090A0F] border-[#27272A] text-zinc-300 hover:border-zinc-700'
+                    : isBlocked
+                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                    : 'bg-[#090A0F] border-[#27272A] text-zinc-500'
+                }`}
               >
-                <div className="flex items-center justify-between w-full text-[10px] font-mono">
-                  <span>#{stg.stage_id}</span>
-                  <span>{stg.duration_ms.toFixed(1)}ms</span>
-                </div>
-                <div className="my-1.5 p-2 rounded-lg bg-slate-900/80">
-                  <Icon className="h-4 w-4" />
-                </div>
-                <span className="text-[11px] font-semibold leading-tight line-clamp-2">
-                  {stg.name}
-                </span>
-                {isCurrent && (
-                  <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-500"></span>
+                {/* Span Title */}
+                <div className="w-56 shrink-0 flex items-center space-x-2 truncate">
+                  <span className="text-[10px] px-1 py-0.2 rounded bg-zinc-800 text-zinc-400 font-bold">
+                    S{stg.stage_id}
                   </span>
-                )}
-              </button>
+                  <span className="text-[11px] font-medium truncate">{stg.name}</span>
+                </div>
+
+                {/* Waterfall Gantt Span Bar */}
+                <div className="flex-1 mx-3 h-4 bg-[#090A0F] border border-[#27272A] rounded relative overflow-hidden">
+                  <div
+                    className={`h-full rounded transition-all duration-300 ${
+                      isBlocked ? 'bg-rose-500' : isCurrent ? 'bg-sky-400' : 'bg-emerald-500'
+                    }`}
+                    style={{
+                      marginLeft: `${Math.min(90, Math.max(0, leftPercent))}%`,
+                      width: `${Math.min(100 - leftPercent, widthPercent)}%`
+                    }}
+                  />
+                </div>
+
+                {/* Duration */}
+                <div className="w-20 text-right shrink-0 text-[11px] text-zinc-400">
+                  {stg.duration_ms.toFixed(2)} ms
+                </div>
+              </div>
             );
           })}
         </div>
       </div>
 
-      {/* Detailed Stage Inspector & Live Data Mutation Box */}
+      {/* Stage Diagnostics & Live JSON */}
       {currentStage && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Stage Diagnostics (Col 1 & 2) */}
-          <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+          {/* Stage Diagnostics (7 cols) */}
+          <div className="lg:col-span-7 bg-[#12131A] border border-[#27272A] rounded-md p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between pb-1.5 border-b border-[#27272A]">
               <div className="flex items-center space-x-2">
-                <span className="h-6 w-6 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-xs">
-                  {currentStage.stage_id}
+                <span className="font-mono text-xs font-bold text-zinc-200">
+                  STAGE {currentStage.stage_id}: {currentStage.name}
                 </span>
-                <h3 className="text-base font-bold text-white">{currentStage.name}</h3>
               </div>
-              <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold border ${
+              <span className={`text-[10px] font-mono px-2 py-0.2 rounded font-bold border ${
                 currentStage.status === 'SUCCESS' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
                 currentStage.status === 'BLOCKED' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
                 'bg-amber-500/10 text-amber-400 border-amber-500/20'
@@ -383,65 +318,41 @@ export const LifecycleInspectorTab: React.FC = () => {
               </span>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+            <p className="text-xs font-mono text-zinc-300 leading-relaxed bg-[#090A0F] p-2.5 rounded border border-[#27272A]">
               {currentStage.description}
             </p>
 
-            {/* Key-Value Diagnostics Table */}
+            {/* Diagnostics Definition List */}
             <div>
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">
-                Stage Diagnostic Telemetry
+              <span className="text-[10px] font-mono font-semibold text-zinc-500 uppercase tracking-wider block mb-1">
+                Execution State
               </span>
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <dl className="grid grid-cols-2 gap-1.5 text-xs font-mono">
                 {Object.entries(currentStage.details).map(([k, v]) => (
-                  <div key={k} className="p-2.5 rounded-lg bg-slate-950 border border-slate-800/60 flex justify-between items-center">
-                    <span className="text-slate-400 font-mono text-[11px]">{k}</span>
-                    <span className="text-white font-semibold font-mono text-[11px] truncate max-w-[140px]">
+                  <div key={k} className="p-2 rounded bg-[#090A0F] border border-[#27272A] flex justify-between items-center">
+                    <dt className="text-zinc-500 text-[10px]">{k}:</dt>
+                    <dd className="text-zinc-200 text-[10px] font-medium truncate max-w-[140px]">
                       {String(v)}
-                    </span>
+                    </dd>
                   </div>
                 ))}
-              </div>
-            </div>
-
-            {/* Latency Contribution */}
-            <div className="pt-2">
-              <div className="flex justify-between text-xs text-slate-400 mb-1">
-                <span>Stage Latency Contribution</span>
-                <span className="font-mono text-emerald-400 font-bold">
-                  {currentStage.duration_ms.toFixed(2)} ms (accumulated: {currentStage.timestamp_offset_ms.toFixed(2)} ms)
-                </span>
-              </div>
-              <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
-                <div
-                  className="h-full bg-gradient-to-r from-sky-500 to-indigo-500 rounded-full"
-                  style={{
-                    width: `${Math.min(100, Math.max(10, (currentStage.duration_ms / (traceData?.total_latency_ms || 1)) * 100))}%`
-                  }}
-                ></div>
-              </div>
+              </dl>
             </div>
           </div>
 
-          {/* Live Payload Mutation Box (Col 3) */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+          {/* Payload JSON (5 cols) */}
+          <div className="lg:col-span-5 bg-[#12131A] border border-[#27272A] rounded-md p-3.5 flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
-                <div className="flex items-center space-x-2">
-                  <FileCode className="h-4 w-4 text-sky-400" />
-                  <span className="text-xs font-bold text-white">Live Payload State</span>
+              <div className="flex items-center justify-between pb-1.5 border-b border-[#27272A] mb-2">
+                <div className="flex items-center space-x-1.5">
+                  <FileCode className="h-3.5 w-3.5 text-zinc-400" />
+                  <span className="text-xs font-mono font-bold text-zinc-200">PAYLOAD SNAPSHOT</span>
                 </div>
-                <span className="text-[10px] font-mono text-slate-500">JSON In-Memory</span>
+                <span className="text-[9px] font-mono text-zinc-500">application/json</span>
               </div>
-              <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 font-mono text-[11px] text-slate-300 max-h-[300px] overflow-y-auto">
-                <pre>{JSON.stringify(currentStage.payload_snapshot, null, 2)}</pre>
+              <div className="bg-[#090A0F] p-2.5 rounded border border-[#27272A] font-mono text-[10px] text-zinc-300 max-h-[220px] overflow-y-auto">
+                <pre className="whitespace-pre-wrap">{JSON.stringify(currentStage.payload_snapshot, null, 2)}</pre>
               </div>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-slate-800 text-[11px] text-slate-400">
-              <p>
-                Watch how the payload mutates at <strong>Stage 2</strong> (Classification tags) and scrambles at <strong>Stage 7</strong> (AES-256 ciphertext).
-              </p>
             </div>
           </div>
         </div>

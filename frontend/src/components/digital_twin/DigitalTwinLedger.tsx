@@ -1,97 +1,69 @@
 import React from 'react';
-import { ShieldCheck, Lock, AlertCircle, ArrowUpRight, CheckCircle2, XCircle } from 'lucide-react';
 import { LiveTransaction } from '../../hooks/useDigitalTwinEngine';
 
 interface LedgerProps {
   transactions: LiveTransaction[];
-  totalProcessed: number;
-  totalDropped: number;
 }
 
-export const DigitalTwinLedger: React.FC<LedgerProps> = ({ transactions, totalProcessed, totalDropped }) => {
-  const getBadgeStyle = (tier: LiveTransaction['classification']) => {
-    switch (tier) {
-      case 'RESTRICTED':
+export const DigitalTwinLedger: React.FC<LedgerProps> = ({ transactions }) => {
+  const displayEvents = transactions.slice(0, 10);
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'COMPLETED':
+        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+      case 'BLOCKED':
+      case 'DROPPED':
         return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
-      case 'CONFIDENTIAL':
-        return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      case 'INTERNAL':
-        return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-      case 'PUBLIC':
-        return 'bg-slate-700/30 text-slate-300 border-slate-700/50';
+      default:
+        return 'bg-sky-500/10 text-sky-400 border-sky-500/20';
     }
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
-      <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+    <div className="bg-[#12131A] border border-[#27272A] rounded-md p-3.5 space-y-2 h-full flex flex-col">
+      <div className="flex items-center justify-between pb-1.5 border-b border-[#27272A]">
         <div className="flex items-center space-x-2">
-          <ShieldCheck className="h-4 w-4 text-emerald-400" />
-          <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-            Live Transaction Stream & Security Ledger
-          </h4>
+          <span className="font-mono text-xs font-semibold text-zinc-200">
+            TRANSACTION EVENT STREAM
+          </span>
+          <span className="font-mono text-[10px] text-zinc-500">&bull; Live Ring Buffer</span>
         </div>
-        <div className="flex items-center space-x-3 text-[11px]">
-          <span className="text-slate-400">Total Processed: <strong className="text-white font-mono">{totalProcessed.toLocaleString()}</strong></span>
-          <span className="text-slate-400">Security Denials: <strong className="text-rose-400 font-mono">{totalDropped}</strong></span>
-        </div>
+        <span className="font-mono text-[10px] text-zinc-500">
+          Last {displayEvents.length} events
+        </span>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-slate-950 text-slate-400 uppercase tracking-wider font-semibold text-[10px]">
+      <div className="flex-1 overflow-x-auto">
+        <table className="w-full text-left font-mono text-[11px]">
+          <thead className="bg-[#090A0F] text-zinc-500 text-[10px] uppercase border-b border-[#27272A]">
             <tr>
-              <th className="p-2">Time</th>
-              <th className="p-2">Txn ID</th>
-              <th className="p-2">Service Type</th>
-              <th className="p-2">Security Tier</th>
-              <th className="p-2">Cloud Target</th>
-              <th className="p-2">Latency Breakdown</th>
-              <th className="p-2 text-right">Status</th>
+              <th className="py-1 px-2 font-medium">Time</th>
+              <th className="py-1 px-2 font-medium">TxID</th>
+              <th className="py-1 px-2 font-medium">Service</th>
+              <th className="py-1 px-2 font-medium">Route</th>
+              <th className="py-1 px-2 font-medium text-right">Latency</th>
+              <th className="py-1 px-2 font-medium text-center">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
-            {transactions.map((tx) => (
-              <tr key={tx.id} className="hover:bg-slate-800/40 transition-colors">
-                <td className="p-2 text-slate-400 text-[10px]">{tx.timestamp}</td>
-                <td className="p-2 font-bold text-sky-400">{tx.id}</td>
-                <td className="p-2 font-sans text-slate-200">
-                  {tx.serviceType.replace(/_/g, ' ')}
-                  {tx.amount && <span className="ml-1 text-[10px] text-emerald-400 font-mono font-bold">${tx.amount.toLocaleString()}</span>}
-                </td>
-                <td className="p-2">
-                  <span className={`px-2 py-0.5 rounded text-[9px] font-bold border ${getBadgeStyle(tx.classification)}`}>
-                    {tx.classification}
-                  </span>
-                </td>
-                <td className="p-2">
-                  <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                    tx.targetTier === 'PRIVATE' ? 'bg-amber-500/15 text-amber-300' : 'bg-purple-500/15 text-purple-300'
+          <tbody className="divide-y divide-[#27272A]/70">
+            {displayEvents.map((tx) => (
+              <tr key={tx.id} className="hover:bg-zinc-800/30 transition-colors">
+                <td className="py-1.5 px-2 text-zinc-400 whitespace-nowrap">{tx.timestamp}</td>
+                <td className="py-1.5 px-2 text-zinc-300 font-semibold">{tx.id}</td>
+                <td className="py-1.5 px-2 text-zinc-300 truncate max-w-[130px]">{tx.serviceType}</td>
+                <td className="py-1.5 px-2">
+                  <span className={`text-[10px] px-1 py-0.2 rounded font-semibold ${
+                    tx.targetTier === 'PRIVATE' ? 'text-indigo-400' : 'text-sky-400'
                   }`}>
-                    {tx.targetTier === 'PRIVATE' ? '🏢 ON-PREM DC' : '☁️ AWS CLOUD'}
+                    {tx.targetTier}
                   </span>
                 </td>
-                <td className="p-2 text-[10px] text-slate-400">
-                  <span title={`Net:${tx.breakdown.network}ms, Sec:${tx.breakdown.security}ms, Q:${tx.breakdown.queue}ms, Serv:${tx.breakdown.service}ms, DB:${tx.breakdown.db}ms`}>
-                    {tx.latencyMs}ms <span className="text-slate-500">(Net:{tx.breakdown.network} + Serv:{tx.breakdown.service}{tx.breakdown.db > 0 ? ` + DB:${tx.breakdown.db}` : ''})</span>
+                <td className="py-1.5 px-2 text-right text-zinc-300">{tx.latencyMs.toFixed(1)}ms</td>
+                <td className="py-1.5 px-2 text-center">
+                  <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold border ${getStatusBadge(tx.status)}`}>
+                    {tx.status}
                   </span>
-                </td>
-                <td className="p-2 text-right">
-                  {tx.status === 'COMPLETED' && (
-                    <span className="inline-flex items-center gap-1 text-emerald-400 font-bold text-[10px]">
-                      <CheckCircle2 className="h-3 w-3" /> PASS
-                    </span>
-                  )}
-                  {tx.status === 'BLOCKED' && (
-                    <span className="inline-flex items-center gap-1 text-rose-400 font-bold text-[10px] animate-pulse">
-                      <XCircle className="h-3 w-3" /> WAF BLOCK
-                    </span>
-                  )}
-                  {tx.status === 'DROPPED' && (
-                    <span className="inline-flex items-center gap-1 text-rose-400 font-bold text-[10px]">
-                      <AlertCircle className="h-3 w-3" /> SATURATED
-                    </span>
-                  )}
                 </td>
               </tr>
             ))}
